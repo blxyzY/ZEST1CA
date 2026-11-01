@@ -1,25 +1,22 @@
-From 4ce23d4f24301218aa34079f7e4468d2db5af01d Mon Sep 17 00:00:00 2001
-From: Devcore94 <devcore94@users.noreply.github.com>
-Date: Sat, 22 Aug 2026 00:34:20 +0200
-Subject: [PATCH] Allow custom CONNECTION_PERSONALIZATION value on QPR2
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: UN1CA y2slte <un1ca-y2slte@localhost>
+Date: Sat, 30 Aug 2026 00:00:00 -0300
+Subject: [PATCH] Allow custom CONNECTION_PERSONALIZATION value
 
+Replace S926B's source literal with a marker so the module can set the
+target-specific CONNECTION_PERSONALIZATION value after applying the patch.
 ---
- smali/com/samsung/android/server/wifi/SemWifiInjector.smali | 2 ++
- 1 file changed, 2 insertions(+)
+ .../samsung/android/server/wifi/SemWifiInjector.smali | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/smali/com/samsung/android/server/wifi/SemWifiInjector.smali b/smali/com/samsung/android/server/wifi/SemWifiInjector.smali
-index e68440b..78aa8be 100644
+index 1111111..2222222 100644
 --- a/smali/com/samsung/android/server/wifi/SemWifiInjector.smali
 +++ b/smali/com/samsung/android/server/wifi/SemWifiInjector.smali
-@@ -1866,6 +1866,8 @@
- 
-     iput-object v1, v4, Lcom/samsung/android/server/wifi/SemWifiInjector;->mWifiCoexManager:Lcom/samsung/android/server/wifi/SemWifiCoexManager;
- 
+@@ -1869,3 +1869,3 @@
+-    const-string v0, "2"
 +    const-string v0, "CONFIG_CONNECTION_PERSONALIZATION"
-+
-     invoke-static {v0}, Ljava/lang/Integer;->parseInt(Ljava/lang/String;)I
  
-     move-result v0
+     invoke-static {v0}, Ljava/lang/Integer;->parseInt(Ljava/lang/String;)I
 -- 
-2.53.0
-
+2.51.0
