@@ -12,11 +12,11 @@ UN1CA: this patch is not complete! Please check unica/patches/product_feature/cu
  .../Utils$$ExternalSyntheticLambda4.smali     |   38 +
  .../Utils$$ExternalSyntheticOutline0.smali    |   18 +
  .../com/android/settings/Utils.smali          |  128 +-
- ...ons$6$$ExternalSyntheticLambda1.smali |  222 +++
- ...ons$6$$ExternalSyntheticLambda2.smali |  211 +--
- ...ons$6$$ExternalSyntheticLambda6.smali |  108 ++
- ...ons$6$$ExternalSyntheticLambda8.smali |   80 +
- ...nageApplications$Applications$6.smali |   30 +-
+ ...onsAdapter$$ExternalSyntheticLambda1.smali |  222 +++
+ ...onsAdapter$$ExternalSyntheticLambda2.smali |  211 +--
+ ...onsAdapter$$ExternalSyntheticLambda6.smali |  108 ++
+ ...onsAdapter$$ExternalSyntheticLambda8.smali |   80 +
+ ...nageApplications$ApplicationsAdapter.smali |   30 +-
  .../biometrics/BiometricEnrollActivity.smali  |    2 +-
  ...ilsAmbientVolumePreferenceController.smali |    2 +-
  .../settings/bluetooth/BluetoothEnabler.smali |    2 +-
@@ -64,9 +64,9 @@ UN1CA: this patch is not complete! Please check unica/patches/product_feature/cu
  .../settings/lockscreen/LockUtils.smali       |    2 +-
  57 files changed, 2602 insertions(+), 1543 deletions(-)
  create mode 100644 smali_classes2/com/android/settings/Utils$$ExternalSyntheticLambda4.smali
- create mode 100644 smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda1.smali
- create mode 100644 smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda6.smali
- create mode 100644 smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8.smali
+ create mode 100644 smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda1.smali
+ create mode 100644 smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda6.smali
+ create mode 100644 smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8.smali
 
 diff --git a/smali/kotlinx/coroutines/JobSupport$Finishing.smali b/smali/kotlinx/coroutines/JobSupport$Finishing.smali
 index 81e155de8..de7a52b62 100644
@@ -76,7 +76,7 @@ index 81e155de8..de7a52b62 100644
  
      const-string v6, ", rootCause="
  
--    invoke-static {v4, v0, v5, v1, v6}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v4, v0, v5, v1, v6}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v4, v0, v5, v1, v6}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v0
@@ -1214,13 +1214,13 @@ index 66a958fd6..d83aeae6e 100644
  .end method
  
  .method public static isGuestMode(Landroid/content/Context;)Z
-diff --git a/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda1.smali b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda1.smali
+diff --git a/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda1.smali b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda1.smali
 new file mode 100644
 index 000000000..0b08772b0
 --- /dev/null
-+++ b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda1.smali
++++ b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda1.smali
 @@ -0,0 +1,222 @@
-+.class public final synthetic Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda1;
++.class public final synthetic Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda1;
 +.super Ljava/lang/Object;
 +.source "qb/109512906 b4d3ff84a332e808da3be5972d0158731a4362f32cad9c0e12752678fab1b0a0"
 +
@@ -1229,7 +1229,7 @@ index 000000000..0b08772b0
 +
 +
 +# instance fields
-+.field public final synthetic f$0:Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;
++.field public final synthetic f$0:Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;
 +
 +.field public final synthetic f$1:Lcom/android/settingslib/applications/ApplicationsState$AppEntry;
 +
@@ -1237,16 +1237,16 @@ index 000000000..0b08772b0
 +
 +
 +# direct methods
-+.method public synthetic constructor <init>(Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;Lcom/android/settingslib/applications/ApplicationsState$AppEntry;Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;)V
++.method public synthetic constructor <init>(Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;Lcom/android/settingslib/applications/ApplicationsState$AppEntry;Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;)V
 +    .locals 0
 +
 +    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 +
-+    iput-object p1, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda1;->f$0:Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;
++    iput-object p1, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda1;->f$0:Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;
 +
-+    iput-object p2, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda1;->f$1:Lcom/android/settingslib/applications/ApplicationsState$AppEntry;
++    iput-object p2, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda1;->f$1:Lcom/android/settingslib/applications/ApplicationsState$AppEntry;
 +
-+    iput-object p3, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda1;->f$2:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
++    iput-object p3, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda1;->f$2:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
 +
 +    return-void
 +.end method
@@ -1256,13 +1256,13 @@ index 000000000..0b08772b0
 +.method public final run()V
 +    .locals 6
 +
-+    iget-object v0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda1;->f$0:Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;
++    iget-object v0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda1;->f$0:Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;
 +
-+    iget-object v1, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda1;->f$1:Lcom/android/settingslib/applications/ApplicationsState$AppEntry;
++    iget-object v1, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda1;->f$1:Lcom/android/settingslib/applications/ApplicationsState$AppEntry;
 +
-+    iget-object p0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda1;->f$2:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
++    iget-object p0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda1;->f$2:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
 +
-+    iget-object v2, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;->mContext:Landroidx/fragment/app/FragmentActivity;
++    iget-object v2, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;->mContext:Landroidx/fragment/app/FragmentActivity;
 +
 +    invoke-static {v2, v1}, Lcom/android/settingslib/applications/AppUtils;->getIcon(Landroid/content/Context;Lcom/android/settingslib/applications/ApplicationsState$AppEntry;)Landroid/graphics/drawable/Drawable;
 +
@@ -1274,7 +1274,7 @@ index 000000000..0b08772b0
 +
 +    if-eqz v3, :cond_0
 +
-+    iget-object v3, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;->mContext:Landroidx/fragment/app/FragmentActivity;
++    iget-object v3, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;->mContext:Landroidx/fragment/app/FragmentActivity;
 +
 +    iget-object v4, v1, Lcom/android/settingslib/applications/ApplicationsState$AppEntry;->info:Landroid/content/pm/ApplicationInfo;
 +
@@ -1286,18 +1286,18 @@ index 000000000..0b08772b0
 +
 +    if-nez v3, :cond_0
 +
-+    new-instance v0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8;
++    new-instance v0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8;
 +
 +    const/4 v1, 0x0
 +
-+    invoke-direct {v0, p0, v2, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8;-><init>(Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;Landroid/graphics/drawable/Drawable;I)V
++    invoke-direct {v0, p0, v2, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8;-><init>(Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;Landroid/graphics/drawable/Drawable;I)V
 +
 +    invoke-static {v0}, Lcom/android/settingslib/utils/ThreadUtils;->postOnMainThread(Ljava/lang/Runnable;)V
 +
 +    return-void
 +
 +    :cond_0
-+    iget-object v2, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;->mManageApplications:Lcom/android/settings/applications/manageapplications/ManageApplications;
++    iget-object v2, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;->mManageApplications:Lcom/android/settings/applications/manageapplications/ManageApplications;
 +
 +    iget-boolean v3, v2, Lcom/android/settings/applications/manageapplications/ManageApplications;->mIsWorkOnly:Z
 +
@@ -1310,7 +1310,7 @@ index 000000000..0b08772b0
 +    goto :goto_0
 +
 +    :cond_1
-+    iget-object v0, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;->mContext:Landroidx/fragment/app/FragmentActivity;
++    iget-object v0, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;->mContext:Landroidx/fragment/app/FragmentActivity;
 +
 +    invoke-static {v0, v1}, Lcom/android/settingslib/applications/AppUtils;->getIconWithoutCache(Landroid/content/Context;Lcom/android/settingslib/applications/ApplicationsState$AppEntry;)Landroid/graphics/drawable/Drawable;
 +
@@ -1318,11 +1318,11 @@ index 000000000..0b08772b0
 +
 +    if-eqz v0, :cond_5
 +
-+    new-instance v1, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8;
++    new-instance v1, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8;
 +
 +    const/4 v2, 0x1
 +
-+    invoke-direct {v1, p0, v0, v2}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8;-><init>(Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;Landroid/graphics/drawable/Drawable;I)V
++    invoke-direct {v1, p0, v0, v2}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8;-><init>(Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;Landroid/graphics/drawable/Drawable;I)V
 +
 +    invoke-static {v1}, Lcom/android/settingslib/utils/ThreadUtils;->postOnMainThread(Ljava/lang/Runnable;)V
 +
@@ -1330,7 +1330,7 @@ index 000000000..0b08772b0
 +
 +    :cond_2
 +    :goto_0
-+    iget-object v0, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;->mContext:Landroidx/fragment/app/FragmentActivity;
++    iget-object v0, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;->mContext:Landroidx/fragment/app/FragmentActivity;
 +
 +    iget v2, v2, Lcom/android/settings/applications/manageapplications/ManageApplications;->mWorkUserId:I
 +
@@ -1431,26 +1431,26 @@ index 000000000..0b08772b0
 +    :goto_3
 +    if-eqz v0, :cond_5
 +
-+    new-instance v1, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8;
++    new-instance v1, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8;
 +
 +    const/4 v2, 0x2
 +
-+    invoke-direct {v1, p0, v0, v2}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8;-><init>(Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;Landroid/graphics/drawable/Drawable;I)V
++    invoke-direct {v1, p0, v0, v2}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8;-><init>(Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;Landroid/graphics/drawable/Drawable;I)V
 +
 +    invoke-static {v1}, Lcom/android/settingslib/utils/ThreadUtils;->postOnMainThread(Ljava/lang/Runnable;)V
 +
 +    :cond_5
 +    return-void
 +.end method
-diff --git a/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2.smali b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2.smali
+diff --git a/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2.smali b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2.smali
 index 4b872c059..3459bed9b 100644
---- a/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2.smali
-+++ b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2.smali
+--- a/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2.smali
++++ b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2.smali
 @@ -7,24 +7,20 @@
  
  
  # instance fields
--.field public final synthetic f$0:Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;
+-.field public final synthetic f$0:Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;
 +.field public final synthetic $r8$classId:I
  
 -.field public final synthetic f$1:Lcom/android/settingslib/applications/ApplicationsState$AppEntry;
@@ -1460,19 +1460,19 @@ index 4b872c059..3459bed9b 100644
  
  
  # direct methods
--.method public synthetic constructor <init>(Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;Lcom/android/settingslib/applications/ApplicationsState$AppEntry;Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;)V
+-.method public synthetic constructor <init>(Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;Lcom/android/settingslib/applications/ApplicationsState$AppEntry;Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;)V
 +.method public synthetic constructor <init>(ILjava/lang/Object;)V
      .locals 0
  
 -    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 -
--    iput-object p1, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;->f$0:Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;
-+    iput p1, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;->$r8$classId:I
+-    iput-object p1, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;->f$0:Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;
++    iput p1, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;->$r8$classId:I
  
--    iput-object p2, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;->f$1:Lcom/android/settingslib/applications/ApplicationsState$AppEntry;
-+    iput-object p2, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;->f$0:Ljava/lang/Object;
+-    iput-object p2, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;->f$1:Lcom/android/settingslib/applications/ApplicationsState$AppEntry;
++    iput-object p2, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;->f$0:Ljava/lang/Object;
  
--    iput-object p3, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;->f$2:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
+-    iput-object p3, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;->f$2:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
 +    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
  
      return-void
@@ -1483,13 +1483,13 @@ index 4b872c059..3459bed9b 100644
  .method public final run()V
 -    .locals 6
 -
--    iget-object v0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;->f$0:Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;
+-    iget-object v0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;->f$0:Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;
 -
--    iget-object v1, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;->f$1:Lcom/android/settingslib/applications/ApplicationsState$AppEntry;
+-    iget-object v1, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;->f$1:Lcom/android/settingslib/applications/ApplicationsState$AppEntry;
 -
--    iget-object p0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;->f$2:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
+-    iget-object p0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;->f$2:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
 -
--    iget-object v2, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;->mContext:Landroidx/fragment/app/FragmentActivity;
+-    iget-object v2, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;->mContext:Landroidx/fragment/app/FragmentActivity;
 -
 -    invoke-static {v2, v1}, Lcom/android/settingslib/applications/AppUtils;->getIcon(Landroid/content/Context;Lcom/android/settingslib/applications/ApplicationsState$AppEntry;)Landroid/graphics/drawable/Drawable;
 -
@@ -1501,10 +1501,10 @@ index 4b872c059..3459bed9b 100644
 +    .locals 3
  
 -    if-eqz v3, :cond_0
-+    iget v0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;->$r8$classId:I
++    iget v0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;->$r8$classId:I
  
--    iget-object v3, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;->mContext:Landroidx/fragment/app/FragmentActivity;
-+    iget-object p0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;->f$0:Ljava/lang/Object;
+-    iget-object v3, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;->mContext:Landroidx/fragment/app/FragmentActivity;
++    iget-object p0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;->f$0:Ljava/lang/Object;
  
 -    iget-object v4, v1, Lcom/android/settingslib/applications/ApplicationsState$AppEntry;->info:Landroid/content/pm/ApplicationInfo;
 +    packed-switch v0, :pswitch_data_0
@@ -1521,13 +1521,13 @@ index 4b872c059..3459bed9b 100644
 -    if-nez v3, :cond_0
 +    move-result v0
  
--    new-instance v0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda9;
+-    new-instance v0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda9;
 +    if-eqz v0, :cond_0
  
 -    const/4 v1, 0x0
 +    iget-object p0, p0, Landroidx/recyclerview/widget/RecyclerView$ViewHolder;->itemView:Landroid/view/View;
  
--    invoke-direct {v0, p0, v2, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda9;-><init>(Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;Landroid/graphics/drawable/Drawable;I)V
+-    invoke-direct {v0, p0, v2, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda9;-><init>(Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;Landroid/graphics/drawable/Drawable;I)V
 +    const/4 v0, 0x0
  
 -    invoke-static {v0}, Lcom/android/settingslib/utils/ThreadUtils;->postOnMainThread(Ljava/lang/Runnable;)V
@@ -1536,7 +1536,7 @@ index 4b872c059..3459bed9b 100644
 +    invoke-virtual {p0, v0}, Landroid/view/View;->setPressed(Z)V
  
      :cond_0
--    iget-object v2, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;->mManageApplications:Lcom/android/settings/applications/manageapplications/ManageApplications;
+-    iget-object v2, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;->mManageApplications:Lcom/android/settings/applications/manageapplications/ManageApplications;
 -
 -    iget-boolean v3, v2, Lcom/android/settings/applications/manageapplications/ManageApplications;->mIsWorkOnly:Z
 -
@@ -1549,7 +1549,7 @@ index 4b872c059..3459bed9b 100644
 -    goto :goto_0
 -
 -    :cond_1
--    iget-object v0, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;->mContext:Landroidx/fragment/app/FragmentActivity;
+-    iget-object v0, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;->mContext:Landroidx/fragment/app/FragmentActivity;
 -
 -    invoke-static {v0, v1}, Lcom/android/settingslib/applications/AppUtils;->getIconWithoutCache(Landroid/content/Context;Lcom/android/settingslib/applications/ApplicationsState$AppEntry;)Landroid/graphics/drawable/Drawable;
 -
@@ -1557,11 +1557,11 @@ index 4b872c059..3459bed9b 100644
 -
 -    if-eqz v0, :cond_5
 -
--    new-instance v1, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda9;
+-    new-instance v1, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda9;
 -
 -    const/4 v2, 0x2
 -
--    invoke-direct {v1, p0, v0, v2}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda9;-><init>(Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;Landroid/graphics/drawable/Drawable;I)V
+-    invoke-direct {v1, p0, v0, v2}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda9;-><init>(Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;Landroid/graphics/drawable/Drawable;I)V
 -
 -    invoke-static {v1}, Lcom/android/settingslib/utils/ThreadUtils;->postOnMainThread(Ljava/lang/Runnable;)V
 -
@@ -1569,7 +1569,7 @@ index 4b872c059..3459bed9b 100644
  
 -    :cond_2
 -    :goto_0
--    iget-object v0, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;->mContext:Landroidx/fragment/app/FragmentActivity;
+-    iget-object v0, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;->mContext:Landroidx/fragment/app/FragmentActivity;
 -
 -    iget v2, v2, Lcom/android/settings/applications/manageapplications/ManageApplications;->mWorkUserId:I
 +    :pswitch_0
@@ -1713,13 +1713,13 @@ index 4b872c059..3459bed9b 100644
 -    if-eqz v0, :cond_5
 +    int-to-float v0, v0
  
--    new-instance v1, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda9;
+-    new-instance v1, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda9;
 +    int-to-float v1, v1
  
 -    const/4 v2, 0x1
 +    invoke-virtual {v2, v0, v1}, Landroid/graphics/drawable/Drawable;->setHotspot(FF)V
  
--    invoke-direct {v1, p0, v0, v2}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda9;-><init>(Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;Landroid/graphics/drawable/Drawable;I)V
+-    invoke-direct {v1, p0, v0, v2}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda9;-><init>(Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;Landroid/graphics/drawable/Drawable;I)V
 +    :cond_2
 +    const/4 v0, 0x1
  
@@ -1737,13 +1737,13 @@ index 4b872c059..3459bed9b 100644
 +        :pswitch_0
 +    .end packed-switch
  .end method
-diff --git a/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda6.smali b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda6.smali
+diff --git a/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda6.smali b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda6.smali
 new file mode 100644
 index 000000000..f1a22076d
 --- /dev/null
-+++ b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda6.smali
++++ b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda6.smali
 @@ -0,0 +1,108 @@
-+.class public final synthetic Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda6;
++.class public final synthetic Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda6;
 +.super Ljava/lang/Object;
 +.source "qb/109512906 b4d3ff84a332e808da3be5972d0158731a4362f32cad9c0e12752678fab1b0a0"
 +
@@ -1752,7 +1752,7 @@ index 000000000..f1a22076d
 +
 +
 +# instance fields
-+.field public final synthetic f$0:Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;
++.field public final synthetic f$0:Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;
 +
 +.field public final synthetic f$1:I
 +
@@ -1760,16 +1760,16 @@ index 000000000..f1a22076d
 +
 +
 +# direct methods
-+.method public synthetic constructor <init>(Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;ILcom/android/settings/applications/manageapplications/ApplicationViewHolder;)V
++.method public synthetic constructor <init>(Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;ILcom/android/settings/applications/manageapplications/ApplicationViewHolder;)V
 +    .locals 0
 +
 +    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 +
-+    iput-object p1, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda6;->f$0:Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;
++    iput-object p1, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda6;->f$0:Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;
 +
-+    iput p2, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda6;->f$1:I
++    iput p2, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda6;->f$1:I
 +
-+    iput-object p3, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda6;->f$2:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
++    iput-object p3, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda6;->f$2:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
 +
 +    return-void
 +.end method
@@ -1779,19 +1779,19 @@ index 000000000..f1a22076d
 +.method public final run()V
 +    .locals 5
 +
-+    iget-object v0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda6;->f$0:Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;
++    iget-object v0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda6;->f$0:Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;
 +
-+    iget v1, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda6;->f$1:I
++    iget v1, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda6;->f$1:I
 +
-+    iget-object p0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda6;->f$2:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
++    iget-object p0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda6;->f$2:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
 +
-+    iget v2, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;->mHighlightTargetPosition:I
++    iget v2, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;->mHighlightTargetPosition:I
 +
 +    const/4 v3, -0x1
 +
 +    if-eq v2, v3, :cond_1
 +
-+    iget-object v2, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;->mManageApplications:Lcom/android/settings/applications/manageapplications/ManageApplications;
++    iget-object v2, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;->mManageApplications:Lcom/android/settings/applications/manageapplications/ManageApplications;
 +
 +    iget v2, v2, Lcom/android/settings/applications/manageapplications/ManageApplications;->mUpdatedListCount:I
 +
@@ -1840,9 +1840,9 @@ index 000000000..f1a22076d
 +
 +    invoke-virtual {p0, v1}, Landroid/view/View;->setPressed(Z)V
 +
-+    iput v3, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;->mHighlightTargetPosition:I
++    iput v3, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;->mHighlightTargetPosition:I
 +
-+    iget-object p0, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;->mManageApplications:Lcom/android/settings/applications/manageapplications/ManageApplications;
++    iget-object p0, v0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;->mManageApplications:Lcom/android/settings/applications/manageapplications/ManageApplications;
 +
 +    const/4 v0, 0x0
 +
@@ -1851,13 +1851,13 @@ index 000000000..f1a22076d
 +    :cond_1
 +    return-void
 +.end method
-diff --git a/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8.smali b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8.smali
+diff --git a/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8.smali b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8.smali
 new file mode 100644
 index 000000000..be994fa3d
 --- /dev/null
-+++ b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8.smali
++++ b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8.smali
 @@ -0,0 +1,80 @@
-+.class public final synthetic Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8;
++.class public final synthetic Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8;
 +.super Ljava/lang/Object;
 +.source "qb/109512906 b4d3ff84a332e808da3be5972d0158731a4362f32cad9c0e12752678fab1b0a0"
 +
@@ -1877,11 +1877,11 @@ index 000000000..be994fa3d
 +.method public synthetic constructor <init>(Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;Landroid/graphics/drawable/Drawable;I)V
 +    .locals 0
 +
-+    iput p3, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8;->$r8$classId:I
++    iput p3, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8;->$r8$classId:I
 +
-+    iput-object p1, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8;->f$0:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
++    iput-object p1, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8;->f$0:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
 +
-+    iput-object p2, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8;->f$1:Landroid/graphics/drawable/Drawable;
++    iput-object p2, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8;->f$1:Landroid/graphics/drawable/Drawable;
 +
 +    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
 +
@@ -1893,13 +1893,13 @@ index 000000000..be994fa3d
 +.method public final run()V
 +    .locals 1
 +
-+    iget v0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8;->$r8$classId:I
++    iget v0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8;->$r8$classId:I
 +
 +    packed-switch v0, :pswitch_data_0
 +
-+    iget-object v0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8;->f$0:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
++    iget-object v0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8;->f$0:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
 +
-+    iget-object p0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8;->f$1:Landroid/graphics/drawable/Drawable;
++    iget-object p0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8;->f$1:Landroid/graphics/drawable/Drawable;
 +
 +    iget-object v0, v0, Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;->mAppIcon:Landroid/widget/ImageView;
 +
@@ -1908,9 +1908,9 @@ index 000000000..be994fa3d
 +    return-void
 +
 +    :pswitch_0
-+    iget-object v0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8;->f$0:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
++    iget-object v0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8;->f$0:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
 +
-+    iget-object p0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8;->f$1:Landroid/graphics/drawable/Drawable;
++    iget-object p0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8;->f$1:Landroid/graphics/drawable/Drawable;
 +
 +    iget-object v0, v0, Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;->mAppIcon:Landroid/widget/ImageView;
 +
@@ -1919,9 +1919,9 @@ index 000000000..be994fa3d
 +    return-void
 +
 +    :pswitch_1
-+    iget-object v0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8;->f$0:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
++    iget-object v0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8;->f$0:Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;
 +
-+    iget-object p0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda8;->f$1:Landroid/graphics/drawable/Drawable;
++    iget-object p0, p0, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda8;->f$1:Landroid/graphics/drawable/Drawable;
 +
 +    iget-object v0, v0, Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;->mAppIcon:Landroid/widget/ImageView;
 +
@@ -1937,19 +1937,19 @@ index 000000000..be994fa3d
 +        :pswitch_0
 +    .end packed-switch
 +.end method
-diff --git a/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6.smali b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6.smali
+diff --git a/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter.smali b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter.smali
 index 3607e8b18..cf72b5a06 100644
---- a/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6.smali
-+++ b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$Applications$6.smali
+--- a/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter.smali
++++ b/smali_classes2/com/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter.smali
 @@ -1113,9 +1113,9 @@
  
      iget-object p2, p1, Landroidx/recyclerview/widget/RecyclerView$ViewHolder;->itemView:Landroid/view/View;
  
--    new-instance v1, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda7;
-+    new-instance v1, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda6;
+-    new-instance v1, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda7;
++    new-instance v1, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda6;
  
--    invoke-direct {v1, p0, v0, p1}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda7;-><init>(Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;ILcom/android/settings/applications/manageapplications/ApplicationViewHolder;)V
-+    invoke-direct {v1, p0, v0, p1}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda6;-><init>(Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;ILcom/android/settings/applications/manageapplications/ApplicationViewHolder;)V
+-    invoke-direct {v1, p0, v0, p1}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda7;-><init>(Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;ILcom/android/settings/applications/manageapplications/ApplicationViewHolder;)V
++    invoke-direct {v1, p0, v0, p1}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda6;-><init>(Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;ILcom/android/settings/applications/manageapplications/ApplicationViewHolder;)V
  
      const-wide/16 v2, 0x258
  
@@ -1957,13 +1957,13 @@ index 3607e8b18..cf72b5a06 100644
  
      iget-object p0, p1, Landroidx/recyclerview/widget/RecyclerView$ViewHolder;->itemView:Landroid/view/View;
  
--    new-instance p2, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda3;
-+    new-instance p2, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;
+-    new-instance p2, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda3;
++    new-instance p2, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;
  
      const/4 v0, 0x4
  
--    invoke-direct {p2, v0, p1}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda3;-><init>(ILjava/lang/Object;)V
-+    invoke-direct {p2, v0, p1}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;-><init>(ILjava/lang/Object;)V
+-    invoke-direct {p2, v0, p1}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda3;-><init>(ILjava/lang/Object;)V
++    invoke-direct {p2, v0, p1}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;-><init>(ILjava/lang/Object;)V
  
      const-wide/16 v0, 0x2ee
  
@@ -1971,23 +1971,23 @@ index 3607e8b18..cf72b5a06 100644
  
      check-cast v1, Landroid/widget/LinearLayout;
  
--    new-instance v3, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda3;
-+    new-instance v3, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;
+-    new-instance v3, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda3;
++    new-instance v3, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;
  
      const/4 v13, 0x0
  
--    invoke-direct {v3, v13, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda3;-><init>(ILjava/lang/Object;)V
-+    invoke-direct {v3, v13, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;-><init>(ILjava/lang/Object;)V
+-    invoke-direct {v3, v13, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda3;-><init>(ILjava/lang/Object;)V
++    invoke-direct {v3, v13, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;-><init>(ILjava/lang/Object;)V
  
      invoke-virtual {v1, v3, v11, v12}, Landroid/widget/LinearLayout;->postDelayed(Ljava/lang/Runnable;J)Z
  
--    new-instance v3, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda3;
-+    new-instance v3, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;
+-    new-instance v3, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda3;
++    new-instance v3, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;
  
      const/4 v11, 0x1
  
--    invoke-direct {v3, v11, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda3;-><init>(ILjava/lang/Object;)V
-+    invoke-direct {v3, v11, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;-><init>(ILjava/lang/Object;)V
+-    invoke-direct {v3, v11, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda3;-><init>(ILjava/lang/Object;)V
++    invoke-direct {v3, v11, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;-><init>(ILjava/lang/Object;)V
  
      invoke-virtual {v1, v3, v6, v7}, Landroid/widget/LinearLayout;->postDelayed(Ljava/lang/Runnable;J)Z
  
@@ -1995,23 +1995,23 @@ index 3607e8b18..cf72b5a06 100644
  
      check-cast v1, Landroid/widget/LinearLayout;
  
--    new-instance v3, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda3;
-+    new-instance v3, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;
+-    new-instance v3, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda3;
++    new-instance v3, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;
  
      const/4 v13, 0x2
  
--    invoke-direct {v3, v13, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda3;-><init>(ILjava/lang/Object;)V
-+    invoke-direct {v3, v13, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;-><init>(ILjava/lang/Object;)V
+-    invoke-direct {v3, v13, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda3;-><init>(ILjava/lang/Object;)V
++    invoke-direct {v3, v13, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;-><init>(ILjava/lang/Object;)V
  
      invoke-virtual {v1, v3, v11, v12}, Landroid/widget/LinearLayout;->postDelayed(Ljava/lang/Runnable;J)Z
  
--    new-instance v3, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda3;
-+    new-instance v3, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;
+-    new-instance v3, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda3;
++    new-instance v3, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;
  
      const/4 v11, 0x3
  
--    invoke-direct {v3, v11, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda3;-><init>(ILjava/lang/Object;)V
-+    invoke-direct {v3, v11, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;-><init>(ILjava/lang/Object;)V
+-    invoke-direct {v3, v11, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda3;-><init>(ILjava/lang/Object;)V
++    invoke-direct {v3, v11, v1}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;-><init>(ILjava/lang/Object;)V
  
      invoke-virtual {v1, v3, v6, v7}, Landroid/widget/LinearLayout;->postDelayed(Ljava/lang/Runnable;J)Z
  
@@ -2019,11 +2019,11 @@ index 3607e8b18..cf72b5a06 100644
      invoke-virtual {v11, v12}, Landroid/widget/TextView;->setContentDescription(Ljava/lang/CharSequence;)V
  
      :goto_6
--    new-instance v11, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;
-+    new-instance v11, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda1;
+-    new-instance v11, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;
++    new-instance v11, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda1;
  
--    invoke-direct {v11, v0, v5, v2}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda2;-><init>(Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;Lcom/android/settingslib/applications/ApplicationsState$AppEntry;Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;)V
-+    invoke-direct {v11, v0, v5, v2}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticLambda1;-><init>(Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6;Lcom/android/settingslib/applications/ApplicationsState$AppEntry;Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;)V
+-    invoke-direct {v11, v0, v5, v2}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda2;-><init>(Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;Lcom/android/settingslib/applications/ApplicationsState$AppEntry;Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;)V
++    invoke-direct {v11, v0, v5, v2}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticLambda1;-><init>(Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter;Lcom/android/settingslib/applications/ApplicationsState$AppEntry;Lcom/android/settings/applications/manageapplications/ApplicationViewHolder;)V
  
      invoke-static {v11}, Lcom/android/settingslib/utils/ThreadUtils;->postOnBackgroundThread(Ljava/lang/Runnable;)Lcom/google/common/util/concurrent/ListenableFuture;
  
@@ -2031,7 +2031,7 @@ index 3607e8b18..cf72b5a06 100644
  
      const-string v10, "], [admin null? "
  
--    invoke-static {v4, v5, v9, p1, v10}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v4, v5, v9, p1, v10}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v4, v5, v9, p1, v10}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object p1
@@ -2044,7 +2044,7 @@ index 75d944028..57df49c74 100644
  
      const-string v5, ", hasFeatureFace: "
  
--    invoke-static {v10, v14, v9, v15, v5}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v10, v14, v9, v15, v5}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v10, v14, v9, v15, v5}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v5
@@ -2057,7 +2057,7 @@ index f91799f6a..5b1a9eff6 100644
  
      const-string v6, ", hasAmbientControl="
  
--    invoke-static {v4, v1, v5, v0, v6}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v4, v1, v5, v0, v6}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v4, v1, v5, v0, v6}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v4
@@ -2070,7 +2070,7 @@ index cd8e188d6..0a9830e21 100644
  
      const-string v4, ", mPolicyEnabled = "
  
--    invoke-static {v2, p1, v3, v1, v4}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v2, p1, v3, v1, v4}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v2, p1, v3, v1, v4}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v2
@@ -2083,7 +2083,7 @@ index 8bfecd0d9..dd6cd4965 100644
  
      const-string v7, ", isBroadcasting = "
  
--    invoke-static {v5, v0, v6, v2, v7}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v5, v0, v6, v2, v7}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v5, v0, v6, v2, v7}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v0
@@ -2096,7 +2096,7 @@ index d95c1d821..d653501bc 100644
  
      const-string v3, " is BT on : "
  
--    invoke-static {v0, v7, v2, v6, v3}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v0, v7, v2, v6, v3}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v0, v7, v2, v6, v3}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v0
@@ -2109,7 +2109,7 @@ index b837ce82b..c5e8057a5 100644
  
      const-string v6, ", mayHaveDifferentNumberingSystem = "
  
--    invoke-static {p1, v0, v5, v1, v6}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {p1, v0, v5, v1, v6}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {p1, v0, v5, v1, v6}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object p1
@@ -2122,7 +2122,7 @@ index 6569e71f1..1a473b9d9 100644
  
      const-string v7, ", mayHaveDifferentNumberingSystem = "
  
--    invoke-static {v5, v0, v6, v1, v7}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v5, v0, v6, v1, v7}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v5, v0, v6, v1, v7}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v5
@@ -2135,7 +2135,7 @@ index 73a0f9d5e..ee7907b28 100644
  
      const-string v7, ", targetPrimarySimCalls: "
  
--    invoke-static {v5, v0, v6, v2, v7}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v5, v0, v6, v2, v7}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v5, v0, v6, v2, v7}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v0
@@ -2148,7 +2148,7 @@ index 2998d825d..15ee8cb43 100644
  
      const-string v9, ", supportVowifi = "
  
--    invoke-static {v12, v11, v7, v2, v9}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v12, v11, v7, v2, v9}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v12, v11, v7, v2, v9}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v7
@@ -2177,7 +2177,7 @@ index 1ddb64653..e1d85efa7 100644
  
      const-string v7, " felicaRemoteLock = "
  
--    invoke-static {v5, v0, v6, p0, v7}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v5, v0, v6, p0, v7}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v5, v0, v6, p0, v7}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v5
@@ -2190,7 +2190,7 @@ index 37000ec7f..34f39b690 100644
  
      const-string v8, " isSamsungLauncher: "
  
--    invoke-static {v6, v0, v7, v3, v8}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v6, v0, v7, v3, v8}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v6, v0, v7, v3, v8}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v6
@@ -2203,7 +2203,7 @@ index 0f28b27c1..404d064e6 100644
  
      const-string v7, ", timeDelay="
  
--    invoke-static {v5, v0, v6, v4, v7}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v5, v0, v6, v4, v7}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v5, v0, v6, v4, v7}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v5
@@ -2216,7 +2216,7 @@ index ef00f96ef..6c871b55f 100644
  
      const-string v4, " isMenuUnavailable: "
  
--    invoke-static {v2, v0, v3, v1, v4}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v2, v0, v3, v1, v4}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v2, v0, v3, v1, v4}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v0
@@ -2229,7 +2229,7 @@ index 11065ed8f..57bbdd9ad 100644
  
      const-string v6, "/"
  
--    invoke-static {v3, v5, v6, v1, v6}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v3, v5, v6, v1, v6}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v3, v5, v6, v1, v6}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v3
@@ -2242,7 +2242,7 @@ index 7343e7f62..1b8687c83 100644
  
      const-string v3, ", isProgressing: "
  
--    invoke-static {v1, p1, v2, p2, v3}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v1, p1, v2, p2, v3}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v1, p1, v2, p2, v3}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v1
@@ -2255,7 +2255,7 @@ index b1457f50a..48152df71 100644
  
      const-string v7, ", isP2pDialogCanBeShown: "
  
--    invoke-static {v5, v0, v6, v1, v7}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v5, v0, v6, v1, v7}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v5, v0, v6, v1, v7}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v0
@@ -2264,7 +2264,7 @@ index b1457f50a..48152df71 100644
  
      const-string v13, ", mWifiApAllowed: "
  
--    invoke-static {v3, v5, v12, v2, v13}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v3, v5, v12, v2, v13}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v3, v5, v12, v2, v13}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v3
@@ -2277,7 +2277,7 @@ index e002278b1..d6a8af2dd 100644
  
      const-string v0, ", "
  
--    invoke-static {p0, p1, v0, p2, v0}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {p0, p1, v0, p2, v0}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {p0, p1, v0, p2, v0}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object p0
@@ -2290,7 +2290,7 @@ index bc137c1ee..a6b99318d 100644
  
      const-string v10, ", isHotspotEnabled: "
  
--    invoke-static {v3, v1, v9, v5, v10}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v3, v1, v9, v5, v10}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v3, v1, v9, v5, v10}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v1
@@ -2303,7 +2303,7 @@ index bb506ccb8..9c3ac9b1c 100644
  
      const-string v8, ", isP2pDialogCanBeShown: "
  
--    invoke-static {v6, v1, v7, v2, v8}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v6, v1, v7, v2, v8}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v6, v1, v7, v2, v8}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v1
@@ -2316,7 +2316,7 @@ index e7c9ff778..aa56528c3 100644
  
      const-string v14, ", isWifiSharingBlocked : "
  
--    invoke-static {v15, v2, v13, v3, v14}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v15, v2, v13, v3, v14}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v15, v2, v13, v3, v14}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v13
@@ -2329,7 +2329,7 @@ index 20cca31cb..4aaa55649 100644
  
      const-string v11, ", isSimDisabled : "
  
--    invoke-static {v5, v1, v8, v2, v11}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v5, v1, v8, v2, v11}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v5, v1, v8, v2, v11}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v5
@@ -2342,7 +2342,7 @@ index f964e1f90..057bb2db6 100644
  
      const-string v10, ", isNetworkDisconnected : "
  
--    invoke-static {v8, v0, v9, v1, v10}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v8, v0, v9, v1, v10}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v8, v0, v9, v1, v10}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v8
@@ -2355,7 +2355,7 @@ index 34995f2d7..4cf468229 100644
  
      const-string v13, ", isNetworkDisconnected : "
  
--    invoke-static {v11, v0, v12, v1, v13}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v11, v0, v12, v1, v13}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v11, v0, v12, v1, v13}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v11
@@ -2368,7 +2368,7 @@ index ee909bffa..49c951cbe 100644
  
      const-string v5, "Is value modified: "
  
--    invoke-static {v3, v0, v4, p0, v5}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v3, v0, v4, p0, v5}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v3, v0, v4, p0, v5}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object p0
@@ -2381,7 +2381,7 @@ index a4921fbe3..a1850d9b4 100644
  
      const-string v9, "isWifiSharingDisabledByB2B "
  
--    invoke-static {v7, p1, v8, v2, v9}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v7, p1, v8, v2, v9}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v7, p1, v8, v2, v9}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object p1
@@ -2390,7 +2390,7 @@ index a4921fbe3..a1850d9b4 100644
  
      const-string v7, ",wifisharing:"
  
--    invoke-static {v3, p1, v5, v0, v7}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v3, p1, v5, v0, v7}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v3, p1, v5, v0, v7}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v3
@@ -2403,7 +2403,7 @@ index 4f4cd343f..eaef4f643 100644
  
      const-string v6, ",  hasTransportCellular: "
  
--    invoke-static {v4, v1, v5, v2, v6}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v4, v1, v5, v2, v6}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v4, v1, v5, v2, v6}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v2
@@ -2416,7 +2416,7 @@ index d1c9634da..50e0ba5e2 100644
  
      const-string v5, ", "
  
--    invoke-static {v3, v0, v4, v1, v5}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v3, v0, v4, v1, v5}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v3, v0, v4, v1, v5}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v3
@@ -2425,7 +2425,7 @@ index d1c9634da..50e0ba5e2 100644
  
      const-string v6, " /mainenanceMode : "
  
--    invoke-static {v4, v0, v5, v1, v6}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v4, v0, v5, v1, v6}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v4, v0, v5, v1, v6}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v4
@@ -2438,7 +2438,7 @@ index 68d64cb93..f9f06c8c3 100644
  
      const-string v4, " recovery Face : "
  
--    invoke-static {v0, v8, v2, v6, v4}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v0, v8, v2, v6, v4}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v0, v8, v2, v6, v4}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v0
@@ -2451,7 +2451,7 @@ index ec78ca4ec..a0c822b5c 100644
  
      const-string v5, ", occluded = "
  
--    invoke-static {v3, p1, v4, v2, v5}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v3, p1, v4, v2, v5}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v3, p1, v4, v2, v5}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v3
@@ -2464,7 +2464,7 @@ index a27ab2d1a..885fc3ca8 100644
  
      const-string v4, ", smsServiceSupported="
  
--    invoke-static {v1, p1, v3, v0, v4}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v1, p1, v3, v0, v4}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v1, p1, v3, v0, v4}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v1
@@ -2477,7 +2477,7 @@ index 0707ed0cb..7805fec36 100644
  
      const-string v5, " hasSim : "
  
--    invoke-static {v3, v2, v4, v1, v5}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v3, v2, v4, v1, v5}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v3, v2, v4, v1, v5}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v1
@@ -2710,7 +2710,7 @@ index 32a31b1bb..8aa49c018 100644
  
      const-string v11, ", isReleaseSignatureMatched : "
  
--    invoke-static {v3, v7, v10, v9, v11}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v3, v7, v10, v9, v11}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v3, v7, v10, v9, v11}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v3
@@ -3668,17 +3668,17 @@ index 3e6400d3f..f2aa54f53 100644
  
      move-result-object v0
  
--    new-instance v5, Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;
-+    new-instance v6, Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;
+-    new-instance v5, Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;
++    new-instance v6, Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;
  
--    invoke-direct {v5}, Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;-><init>()V
-+    invoke-direct {v6}, Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;-><init>()V
+-    invoke-direct {v5}, Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;-><init>()V
++    invoke-direct {v6}, Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;-><init>()V
  
--    iput-object v5, v7, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListView$6:Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;
-+    iput-object v6, v8, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListView$6:Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;
+-    iput-object v5, v7, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListViewAdapter:Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;
++    iput-object v6, v8, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListViewAdapter:Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;
  
--    iput-object v0, v5, Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;->mTypeface:Landroid/graphics/Typeface;
-+    iput-object v0, v6, Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;->mTypeface:Landroid/graphics/Typeface;
+-    iput-object v0, v5, Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;->mTypeface:Landroid/graphics/Typeface;
++    iput-object v0, v6, Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;->mTypeface:Landroid/graphics/Typeface;
  
 -    const v5, 0x7f0a06a4
 +    const v6, 0x7f0a06a4
@@ -3695,11 +3695,11 @@ index 3e6400d3f..f2aa54f53 100644
 -    check-cast v9, Landroid/widget/ListView;
 +    check-cast v10, Landroid/widget/ListView;
  
--    iget-object v5, v7, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListView$6:Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;
-+    iget-object v6, v8, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListView$6:Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;
+-    iget-object v5, v7, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListViewAdapter:Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;
++    iget-object v6, v8, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListViewAdapter:Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;
  
--    invoke-virtual {v9, v5}, Landroid/widget/ListView;->set$6(Landroid/widget/List$6;)V
-+    invoke-virtual {v10, v6}, Landroid/widget/ListView;->set$6(Landroid/widget/List$6;)V
+-    invoke-virtual {v9, v5}, Landroid/widget/ListView;->setAdapter(Landroid/widget/ListAdapter;)V
++    invoke-virtual {v10, v6}, Landroid/widget/ListView;->setAdapter(Landroid/widget/ListAdapter;)V
  
 -    new-instance v5, Lcom/samsung/android/settings/display/SecFontTrialSettings$$ExternalSyntheticLambda0;
 +    new-instance v6, Lcom/samsung/android/settings/display/SecFontTrialSettings$$ExternalSyntheticLambda0;
@@ -3730,8 +3730,8 @@ index 3e6400d3f..f2aa54f53 100644
 -    if-ge v5, v8, :cond_9
 +    if-ge v6, v11, :cond_9
  
--    iget-object v8, v7, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListView$6:Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;
-+    iget-object v11, v8, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListView$6:Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;
+-    iget-object v8, v7, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListViewAdapter:Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;
++    iget-object v11, v8, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListViewAdapter:Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;
  
 -    aget-object v10, v2, v5
 +    aget-object v13, v2, v6
@@ -3749,8 +3749,8 @@ index 3e6400d3f..f2aa54f53 100644
 +    move v7, v4
  
      :goto_5
--    invoke-virtual {v8, v10, v12}, Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;->addItem(Ljava/lang/String;Z)V
-+    invoke-virtual {v11, v13, v7}, Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;->addItem(Ljava/lang/String;Z)V
+-    invoke-virtual {v8, v10, v12}, Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;->addItem(Ljava/lang/String;Z)V
++    invoke-virtual {v11, v13, v7}, Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;->addItem(Ljava/lang/String;Z)V
  
 -    add-int/2addr v5, v4
 +    add-int/2addr v6, v5
@@ -3758,8 +3758,8 @@ index 3e6400d3f..f2aa54f53 100644
      goto :goto_4
  
      :cond_8
--    iget-object v2, v7, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListView$6:Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;
-+    iget-object v2, v8, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListView$6:Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;
+-    iget-object v2, v7, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListViewAdapter:Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;
++    iget-object v2, v8, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListViewAdapter:Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;
  
 -    const v5, 0x7f1410d3
 +    const v6, 0x7f1410d3
@@ -3770,11 +3770,11 @@ index 3e6400d3f..f2aa54f53 100644
 -    move-result-object v5
 +    move-result-object v6
  
--    invoke-virtual {v2, v5, v3}, Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;->addItem(Ljava/lang/String;Z)V
-+    invoke-virtual {v2, v6, v4}, Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;->addItem(Ljava/lang/String;Z)V
+-    invoke-virtual {v2, v5, v3}, Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;->addItem(Ljava/lang/String;Z)V
++    invoke-virtual {v2, v6, v4}, Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;->addItem(Ljava/lang/String;Z)V
  
--    iget-object v2, v7, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListView$6:Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;
-+    iget-object v2, v8, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListView$6:Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;
+-    iget-object v2, v7, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListViewAdapter:Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;
++    iget-object v2, v8, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListViewAdapter:Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;
  
 -    const v5, 0x7f1410d4
 +    const v6, 0x7f1410d4
@@ -3785,8 +3785,8 @@ index 3e6400d3f..f2aa54f53 100644
 -    move-result-object v5
 +    move-result-object v6
  
--    invoke-virtual {v2, v5, v4}, Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;->addItem(Ljava/lang/String;Z)V
-+    invoke-virtual {v2, v6, v5}, Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;->addItem(Ljava/lang/String;Z)V
+-    invoke-virtual {v2, v5, v4}, Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;->addItem(Ljava/lang/String;Z)V
++    invoke-virtual {v2, v6, v5}, Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;->addItem(Ljava/lang/String;Z)V
  
 -    iget-object v2, v7, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mIntent:Landroid/content/Intent;
 +    iget-object v2, v8, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mIntent:Landroid/content/Intent;
@@ -3799,8 +3799,8 @@ index 3e6400d3f..f2aa54f53 100644
  
      move-result-object v2
  
--    iget-object v4, v7, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListView$6:Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;
-+    iget-object v5, v8, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListView$6:Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;
+-    iget-object v4, v7, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListViewAdapter:Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;
++    iget-object v5, v8, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListViewAdapter:Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;
  
 -    const v5, 0x7f1410d5
 +    const v6, 0x7f1410d5
@@ -3814,8 +3814,8 @@ index 3e6400d3f..f2aa54f53 100644
  
      move-result-object v2
  
--    invoke-virtual {v4, v2, v3}, Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;->addItem(Ljava/lang/String;Z)V
-+    invoke-virtual {v5, v2, v4}, Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;->addItem(Ljava/lang/String;Z)V
+-    invoke-virtual {v4, v2, v3}, Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;->addItem(Ljava/lang/String;Z)V
++    invoke-virtual {v5, v2, v4}, Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;->addItem(Ljava/lang/String;Z)V
  
      :cond_9
      const v2, 0x7f0a06a3
@@ -3849,10 +3849,10 @@ index 3e6400d3f..f2aa54f53 100644
  
 -    invoke-virtual {v8, v0}, Landroid/widget/EditText;->setTypeface(Landroid/graphics/Typeface;)V
 -
--    iget-object v0, v7, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListView$6:Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;
-+    iget-object v0, v8, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListView$6:Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;
+-    iget-object v0, v7, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListViewAdapter:Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;
++    iget-object v0, v8, Lcom/samsung/android/settings/display/SecFontTrialSettings;->mBubbleListViewAdapter:Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;
  
-     iget-object v0, v0, Lcom/samsung/android/settings/display/FontPreviewBubbleList$6;->mFontPreviewBubbleList:Ljava/util/ArrayList;
+     iget-object v0, v0, Lcom/samsung/android/settings/display/FontPreviewBubbleListAdapter;->mFontPreviewBubbleList:Ljava/util/ArrayList;
  
 @@ -489,168 +487,186 @@
  
@@ -4237,17 +4237,17 @@ index 3e6400d3f..f2aa54f53 100644
 -    iput-object v5, v0, Lcom/samsung/android/settings/display/SecScreenZoomPreferenceFragment;->mPreviewPager:Landroidx/viewpager/widget/ViewPager;
 +    iput-object v6, v0, Lcom/samsung/android/settings/display/SecScreenZoomPreferenceFragment;->mPreviewPager:Landroidx/viewpager/widget/ViewPager;
  
--    new-instance v5, Lcom/samsung/android/settings/display/SecPreviewPager$6;
-+    new-instance v6, Lcom/samsung/android/settings/display/SecPreviewPager$6;
+-    new-instance v5, Lcom/samsung/android/settings/display/SecPreviewPagerAdapter;
++    new-instance v6, Lcom/samsung/android/settings/display/SecPreviewPagerAdapter;
  
--    invoke-direct {v5}, Landroidx/viewpager/widget/Pager$6;-><init>()V
-+    invoke-direct {v6}, Landroidx/viewpager/widget/Pager$6;-><init>()V
+-    invoke-direct {v5}, Landroidx/viewpager/widget/PagerAdapter;-><init>()V
++    invoke-direct {v6}, Landroidx/viewpager/widget/PagerAdapter;-><init>()V
  
 -    new-array v6, v4, [Landroid/widget/FrameLayout;
 +    new-array v7, v5, [Landroid/widget/FrameLayout;
  
--    iput-object v6, v5, Lcom/samsung/android/settings/display/SecPreviewPager$6;->mPreviewFrames:[Landroid/widget/FrameLayout;
-+    iput-object v7, v6, Lcom/samsung/android/settings/display/SecPreviewPager$6;->mPreviewFrames:[Landroid/widget/FrameLayout;
+-    iput-object v6, v5, Lcom/samsung/android/settings/display/SecPreviewPagerAdapter;->mPreviewFrames:[Landroid/widget/FrameLayout;
++    iput-object v7, v6, Lcom/samsung/android/settings/display/SecPreviewPagerAdapter;->mPreviewFrames:[Landroid/widget/FrameLayout;
  
 -    const/4 v7, 0x2
 +    const/4 v9, 0x2
@@ -4273,11 +4273,11 @@ index 3e6400d3f..f2aa54f53 100644
 -    check-cast v9, [[Z
 +    check-cast v10, [[Z
  
--    iput-object v9, v5, Lcom/samsung/android/settings/display/SecPreviewPager$6;->mViewStubInflated:[[Z
-+    iput-object v10, v6, Lcom/samsung/android/settings/display/SecPreviewPager$6;->mViewStubInflated:[[Z
+-    iput-object v9, v5, Lcom/samsung/android/settings/display/SecPreviewPagerAdapter;->mViewStubInflated:[[Z
++    iput-object v10, v6, Lcom/samsung/android/settings/display/SecPreviewPagerAdapter;->mViewStubInflated:[[Z
  
--    iput-object v8, v5, Lcom/samsung/android/settings/display/SecPreviewPager$6;->mContext:Landroid/content/Context;
-+    iput-object v8, v6, Lcom/samsung/android/settings/display/SecPreviewPager$6;->mContext:Landroid/content/Context;
+-    iput-object v8, v5, Lcom/samsung/android/settings/display/SecPreviewPagerAdapter;->mContext:Landroid/content/Context;
++    iput-object v8, v6, Lcom/samsung/android/settings/display/SecPreviewPagerAdapter;->mContext:Landroid/content/Context;
  
 -    new-instance v9, Landroid/widget/FrameLayout;
 +    new-instance v10, Landroid/widget/FrameLayout;
@@ -4354,17 +4354,17 @@ index 3e6400d3f..f2aa54f53 100644
 -    invoke-virtual {v12, v9}, Landroid/view/ViewStub;->setLayoutResource(I)V
 +    invoke-virtual {v2, v10}, Landroid/view/ViewStub;->setLayoutResource(I)V
  
--    new-instance v9, Lcom/samsung/android/settings/display/SecPreviewPager$6$$ExternalSyntheticLambda0;
-+    new-instance v10, Lcom/samsung/android/settings/display/SecPreviewPager$6$$ExternalSyntheticLambda0;
+-    new-instance v9, Lcom/samsung/android/settings/display/SecPreviewPagerAdapter$$ExternalSyntheticLambda0;
++    new-instance v10, Lcom/samsung/android/settings/display/SecPreviewPagerAdapter$$ExternalSyntheticLambda0;
  
--    invoke-direct {v9, v5, v3, v6}, Lcom/samsung/android/settings/display/SecPreviewPager$6$$ExternalSyntheticLambda0;-><init>(Lcom/samsung/android/settings/display/SecPreviewPager$6;II)V
-+    invoke-direct {v10, v6, v4, v7}, Lcom/samsung/android/settings/display/SecPreviewPager$6$$ExternalSyntheticLambda0;-><init>(Lcom/samsung/android/settings/display/SecPreviewPager$6;II)V
+-    invoke-direct {v9, v5, v3, v6}, Lcom/samsung/android/settings/display/SecPreviewPagerAdapter$$ExternalSyntheticLambda0;-><init>(Lcom/samsung/android/settings/display/SecPreviewPagerAdapter;II)V
++    invoke-direct {v10, v6, v4, v7}, Lcom/samsung/android/settings/display/SecPreviewPagerAdapter$$ExternalSyntheticLambda0;-><init>(Lcom/samsung/android/settings/display/SecPreviewPagerAdapter;II)V
  
 -    invoke-virtual {v12, v9}, Landroid/view/ViewStub;->setOnInflateListener(Landroid/view/ViewStub$OnInflateListener;)V
 +    invoke-virtual {v2, v10}, Landroid/view/ViewStub;->setOnInflateListener(Landroid/view/ViewStub$OnInflateListener;)V
  
--    iget-object v9, v5, Lcom/samsung/android/settings/display/SecPreviewPager$6;->mPreviewFrames:[Landroid/widget/FrameLayout;
-+    iget-object v10, v6, Lcom/samsung/android/settings/display/SecPreviewPager$6;->mPreviewFrames:[Landroid/widget/FrameLayout;
+-    iget-object v9, v5, Lcom/samsung/android/settings/display/SecPreviewPagerAdapter;->mPreviewFrames:[Landroid/widget/FrameLayout;
++    iget-object v10, v6, Lcom/samsung/android/settings/display/SecPreviewPagerAdapter;->mPreviewFrames:[Landroid/widget/FrameLayout;
  
 -    aget-object v9, v9, v3
 +    aget-object v10, v10, v4
@@ -4381,13 +4381,13 @@ index 3e6400d3f..f2aa54f53 100644
      goto :goto_8
  
      :cond_12
--    iput-object v5, v0, Lcom/samsung/android/settings/display/SecScreenZoomPreferenceFragment;->mPreviewPager$6:Lcom/samsung/android/settings/display/SecPreviewPager$6;
-+    iput-object v6, v0, Lcom/samsung/android/settings/display/SecScreenZoomPreferenceFragment;->mPreviewPager$6:Lcom/samsung/android/settings/display/SecPreviewPager$6;
+-    iput-object v5, v0, Lcom/samsung/android/settings/display/SecScreenZoomPreferenceFragment;->mPreviewPagerAdapter:Lcom/samsung/android/settings/display/SecPreviewPagerAdapter;
++    iput-object v6, v0, Lcom/samsung/android/settings/display/SecScreenZoomPreferenceFragment;->mPreviewPagerAdapter:Lcom/samsung/android/settings/display/SecPreviewPagerAdapter;
  
      iget-object v2, v0, Lcom/samsung/android/settings/display/SecScreenZoomPreferenceFragment;->mPreviewPager:Landroidx/viewpager/widget/ViewPager;
  
--    invoke-virtual {v2, v5}, Landroidx/viewpager/widget/ViewPager;->set$6(Landroidx/viewpager/widget/Pager$6;)V
-+    invoke-virtual {v2, v6}, Landroidx/viewpager/widget/ViewPager;->set$6(Landroidx/viewpager/widget/Pager$6;)V
+-    invoke-virtual {v2, v5}, Landroidx/viewpager/widget/ViewPager;->setAdapter(Landroidx/viewpager/widget/PagerAdapter;)V
++    invoke-virtual {v2, v6}, Landroidx/viewpager/widget/ViewPager;->setAdapter(Landroidx/viewpager/widget/PagerAdapter;)V
  
      iget-object v2, v0, Lcom/samsung/android/settings/display/SecScreenZoomPreferenceFragment;->mPreviewPager:Landroidx/viewpager/widget/ViewPager;
  
@@ -6259,7 +6259,7 @@ index 1843bd0ab..e9867e8f1 100644
  
 -    :cond_38
 +    :cond_39
-     invoke-static {v0}, Lcom/samsung/android/settings/flipfont/FontList$6;->getInstanceFontList$6(Landroid/content/Context;)Lcom/samsung/android/settings/flipfont/FontList$6;
+     invoke-static {v0}, Lcom/samsung/android/settings/flipfont/FontListAdapter;->getInstanceFontListAdapter(Landroid/content/Context;)Lcom/samsung/android/settings/flipfont/FontListAdapter;
  
      move-result-object v3
 @@ -3744,7 +3845,7 @@
@@ -6269,7 +6269,7 @@ index 1843bd0ab..e9867e8f1 100644
 -    if-ge v15, v4, :cond_3a
 +    if-ge v15, v4, :cond_3b
  
-     iget-object v4, v3, Lcom/samsung/android/settings/flipfont/FontList$6;->mFontNames:Ljava/util/ArrayList;
+     iget-object v4, v3, Lcom/samsung/android/settings/flipfont/FontListAdapter;->mFontNames:Ljava/util/ArrayList;
  
 @@ -3758,7 +3859,7 @@
  
@@ -6278,7 +6278,7 @@ index 1843bd0ab..e9867e8f1 100644
 -    if-eqz v4, :cond_39
 +    if-eqz v4, :cond_3a
  
-     iget-object v3, v3, Lcom/samsung/android/settings/flipfont/FontList$6;->mFontPackageNames:Ljava/util/ArrayList;
+     iget-object v3, v3, Lcom/samsung/android/settings/flipfont/FontListAdapter;->mFontPackageNames:Ljava/util/ArrayList;
  
 @@ -3772,14 +3873,14 @@
  
@@ -8680,11 +8680,10 @@ index e633faaa8..385da9d91 100644
  
      const-string v7, ", Locale="
  
--    invoke-static {v5, v3, v6, v4, v7}, Lcom/android/settings/applications/manageapplications/ManageApplications$Applications$6$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
+-    invoke-static {v5, v3, v6, v4, v7}, Lcom/android/settings/applications/manageapplications/ManageApplications$ApplicationsAdapter$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
 +    invoke-static {v5, v3, v6, v4, v7}, Lcom/android/settings/Utils$$ExternalSyntheticOutline0;->m(Ljava/lang/String;ZLjava/lang/String;ZLjava/lang/String;)Ljava/lang/StringBuilder;
  
      move-result-object v5
  
 -- 
 2.54.0
-

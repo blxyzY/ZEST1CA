@@ -1,0 +1,4 @@
+id=zzdexsplit
+name=framework.jar dex split
+author=Zest
+description=Moves rarely-used classes out of framework.jar classes.dex into a new dex so patches that add method ids do not overflow the 65536 limit.

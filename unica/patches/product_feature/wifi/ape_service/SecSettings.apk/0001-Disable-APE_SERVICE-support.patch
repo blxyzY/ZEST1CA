@@ -1,34 +1,33 @@
-From 5f07abaaee0f2a89ec4c04cf661fb6ce67f63066 Mon Sep 17 00:00:00 2001
-From: Devcore94 <devcore94@users.noreply.github.com>
-Date: Sat, 22 Aug 2026 00:42:40 +0200
-Subject: [PATCH] Disable APE_SERVICE support on QPR2
+From a7afd4e82aa6669c0a99c1e17af7d323a8cf8f66 Mon Sep 17 00:00:00 2001
+From: Salvo Giangreco <giangrecosalvo9@gmail.com>
+Date: Mon, 8 Sep 2025 22:22:19 +0200
+Subject: [PATCH] Disable APE_SERVICE support
 
 ---
- .../wifi/develop/ApePreferenceController.smali | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ .../settings/wifi/develop/ApePreferenceController.smali | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/smali_classes2/com/samsung/android/settings/wifi/develop/ApePreferenceController.smali b/smali_classes2/com/samsung/android/settings/wifi/develop/ApePreferenceController.smali
-index a904caa..bd1c4ef 100644
+index 265a02314..04b5e0f09 100644
 --- a/smali_classes2/com/samsung/android/settings/wifi/develop/ApePreferenceController.smali
 +++ b/smali_classes2/com/samsung/android/settings/wifi/develop/ApePreferenceController.smali
-@@ -7,5 +7,5 @@
+@@ -6,7 +6,7 @@
+ # static fields
  .field private static final SETTINGS_DEVELOPER_APE:Ljava/lang/String; = "sem_wifi_ape_enabled_labs"
--
+
 -.field private static final SUPPORT_APE_SERVICE:Z = true
--
-+
 +.field private static final SUPPORT_APE_SERVICE:Z = false
-+
+ 
  .field private static final TAG:Ljava/lang/String; = "ConfigureWifiSettings.Ape"
-@@ -57,6 +57,6 @@
+ 
+@@ -57,7 +57,7 @@
  .method public getAvailabilityStatus()I
      .locals 0
--
+ 
 -    const/4 p0, 0x0
--
-+
 +    const/4 p0, 0x3
-+
+ 
      return p0
+ .end method
 -- 
-2.53.0
+2.51.0
