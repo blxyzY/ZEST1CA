@@ -582,8 +582,12 @@ if ! $PRESERVE_NATIVE_DISPLAY_STACK && { [[ "$SOURCE_LCD_CONFIG_SEAMLESS_BRT" !=
         [[ "$SOURCE_LCD_CONFIG_SEAMLESS_LUX" != "$TARGET_LCD_CONFIG_SEAMLESS_LUX" ]]; }; then
     if [[ "$SOURCE_LCD_CONFIG_SEAMLESS_BRT" != "none" ]] && [[ "$SOURCE_LCD_CONFIG_SEAMLESS_LUX" != "none" ]] && \
             [[ "$TARGET_LCD_CONFIG_SEAMLESS_BRT" == "none" ]] && [[ "$TARGET_LCD_CONFIG_SEAMLESS_LUX" == "none" ]]; then
-        APPLY_PATCH "system" "system/framework/framework.jar" \
-            "$MODPATH/hfr/framework.jar/0001-Remove-brightness-threshold-values.patch"
+        if [[ "$TARGET_PLATFORM" == "sm6225" ]]; then
+            LOG "- Skipping \"Remove brightness threshold values\" on SM6225 (incomplete patch)"
+        else
+            APPLY_PATCH "system" "system/framework/framework.jar" \
+                "$MODPATH/hfr/framework.jar/0001-Remove-brightness-threshold-values.patch"
+        fi
     elif [[ "$SOURCE_LCD_CONFIG_SEAMLESS_BRT" != "none" ]] && [[ "$SOURCE_LCD_CONFIG_SEAMLESS_LUX" != "none" ]] && \
             [[ "$TARGET_LCD_CONFIG_SEAMLESS_BRT" != "none" ]] && [[ "$TARGET_LCD_CONFIG_SEAMLESS_LUX" != "none" ]]; then
         REFRESH_RATE_CONFIG="$APKTOOL_DIR/system/framework/framework.jar/smali_classes6/com/samsung/android/hardware/display/RefreshRateConfig.smali"

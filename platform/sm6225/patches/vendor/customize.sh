@@ -1,14 +1,3 @@
-LOG_STEP_IN "- Enabling Vulkan"
-SET_PROP "vendor" "ro.hwui.use_vulkan" "true"
-LOG_STEP_OUT
-
-LOG_STEP_IN "- wifi+security Prop"
-SET_PROP "vendor" "wlan.wfd.hdcp" "disabled"
-SET_PROP "vendor" "wifi.interface" "wlan0"
-SET_PROP "vendor" "ro.security.vaultkeeper.native" "0"
-SET_PROP "vendor" "ro.security.vaultkeeper.feature" "0"
-LOG_STEP_OUT
-
 LOG_STEP_IN "- Allowing mremap in vendor Codec2 seccomp policies"
 C2_POLICY_FIRST=""
 C2_POLICY_PATCHED=false
