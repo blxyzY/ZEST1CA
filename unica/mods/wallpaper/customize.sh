@@ -57,7 +57,11 @@ ENCODE_MP4()
     CMD+=" -i \"$FILE_PATH/$FILE_NAME\""
     CMD+=" -c:v libx264 -c:a copy"
     CMD+=" -pix_fmt yuv420p -crf 18 -g 1"
-    CMD+=" -preset veryslow -tune zerolatency"
+    # These are short, all-intra 1440p/60 wallpapers. The veryslow preset
+    # makes each clean build spend several minutes per clip for negligible
+    # visual benefit. Keep CRF/GOP/output compatibility and use all CPU cores
+    # with x264's substantially faster preset.
+    CMD+=" -preset fast -tune zerolatency"
     CMD+=" -movflags use_metadata_tags -map_metadata 0"
     CMD+=" -vf \"fps=60,scale=$RES,setsar=1:1\""
     CMD+=" -video_track_timescale 360000 -movie_timescale 90000"
@@ -66,298 +70,35 @@ ENCODE_MP4()
     EVAL "$CMD" || return 1
     EVAL "mv -f \"$FILE_PATH/temp.mp4\" \"$FILE_PATH/$FILE_NAME\"" || return 1
 }
-
-LIST_WALLPAPER_RESOURCE_NAMES()
-{
-    node - "$@" <<'NODE'
-const fs = require("fs");
-const files = process.argv.slice(2);
-const names = new Set();
-
-function maybeAddName(value) {
-  if (typeof value !== "string") {
-    return;
-  }
-
-  if (/^[A-Za-z0-9_.-]+\.(png|jpg|jpeg|webp|mp4)$/i.test(value)) {
-    names.add(value);
-  }
-}
-
-function visit(value) {
-  if (Array.isArray(value)) {
-    value.forEach(visit);
-    return;
-  }
-
-  if (!value || typeof value !== "object") {
-    maybeAddName(value);
-    return;
-  }
-
-  maybeAddName(value.filename);
-
-  if (value.drawables && typeof value.drawables === "object") {
-    for (const drawable of Object.values(value.drawables)) {
-      if (typeof drawable === "string") {
-        names.add(drawable);
-      }
-    }
-  }
-
-  for (const child of Object.values(value)) {
-    visit(child);
-  }
-}
-
-for (const file of files) {
-  try {
-    visit(JSON.parse(fs.readFileSync(file, "utf8")));
-  } catch (error) {
-    console.error(`${file}: ${error.message}`);
-    process.exitCode = 1;
-  }
-}
-
-[...names].sort().forEach((name) => console.log(name));
-NODE
-}
-
-RESOLVE_WALLPAPER_RESOURCE_FILE()
-{
-    local APK_DIR="$1"
-    local NAME="$2"
-    local BASE="${NAME%.*}"
-    local CANDIDATES=()
-    local DIR
-    local CANDIDATE
-
-    if [[ "$NAME" == "$BASE" ]]; then
-        CANDIDATES=("$NAME" "$NAME.webp" "$NAME.png" "$NAME.jpg" "$NAME.xml")
-    else
-        CANDIDATES=("$NAME" "$BASE.webp" "$BASE.png" "$BASE.jpg" "$BASE.xml")
-    fi
-
-    for DIR in "$APK_DIR/res"/raw "$APK_DIR/res"/drawable* "$APK_DIR/res"/mipmap*; do
-        [ -d "$DIR" ] || continue
-        for CANDIDATE in "${CANDIDATES[@]}"; do
-            if [ -f "$DIR/$CANDIDATE" ]; then
-                echo "$DIR/$CANDIDATE"
-                return 0
-            fi
-        done
-    done
-
-    return 1
-}
-
-PROCESS_WALLPAPER_DECLARED_RESOURCES()
-{
-    local APK_DIR="$1"
-    local JSON_FILES=()
-    local RESOURCE_NAMES
-    local NAME
-    local FILE
-    local FOUND=false
-
-    declare -A PROCESSED_FILES=()
-
-    for FILE in "$APK_DIR"/res/raw/resources_info*.json; do
-        [ -f "$FILE" ] && JSON_FILES+=("$FILE")
-    done
-
-    [ "${#JSON_FILES[@]}" -gt "0" ] || return 1
-
-    RESOURCE_NAMES="$(LIST_WALLPAPER_RESOURCE_NAMES "${JSON_FILES[@]}")" || return 1
-
-    while IFS= read -r NAME; do
-        [ "$NAME" ] || continue
-
-        FILE="$(RESOLVE_WALLPAPER_RESOURCE_FILE "$APK_DIR" "$NAME")" || continue
-        [ "$FILE" ] || continue
-        if [ "${PROCESSED_FILES[$FILE]}" ]; then
-            continue
-        fi
-
-        PROCESSED_FILES["$FILE"]=true
-        FOUND=true
-
-        case "$FILE" in
-            *.webp)
-                COMPRESS_WEBP "$FILE" || return 1
-                ;;
-            *.mp4)
-                ENCODE_MP4 "$FILE" || return 1
-                ;;
-        esac
-    done <<< "$RESOURCE_NAMES"
-
-    $FOUND
-}
-
-PROCESS_WALLPAPER_LEGACY_GLOBS()
-{
-    local APK_DIR="$1"
-    local FILE
-
-    for FILE in "$APK_DIR/res"/drawable-nodpi*/dex_wallpaper_*.webp; do
-        [ -f "$FILE" ] || continue
-        COMPRESS_WEBP "$FILE" || return 1
-    done
-    for FILE in "$APK_DIR/res"/drawable-nodpi*/wallpaper_*.webp; do
-        [ -f "$FILE" ] || continue
-        COMPRESS_WEBP "$FILE" || return 1
-    done
-    for FILE in "$APK_DIR/res/raw"/video_*.mp4; do
-        [ -f "$FILE" ] || continue
-        ENCODE_MP4 "$FILE" || return 1
-    done
-}
-
-ADJUST_WALLPAPER_METADATA()
-{
-    local JSON_FILE="$1"
-
-    [ -f "$JSON_FILE" ] || return 0
-
-    node - "$JSON_FILE" <<'NODE'
-const fs = require("fs");
-const file = process.argv[2];
-const data = JSON.parse(fs.readFileSync(file, "utf8"));
-const SCALE = 2 / 3;
-let adjusted = 0;
-
-function scaleFrame(value) {
-  if (typeof value !== "number" || value <= 0) {
-    return value;
-  }
-  return Math.floor(value * SCALE);
-}
-
-function collectTransitionFrames(info) {
-  if (typeof info !== "string") {
-    return [];
-  }
-
-  const frames = [];
-  for (const line of info.split(/\n/)) {
-    const parts = line.trim().split(/\s+/);
-    if (parts.length < 5) {
-      continue;
-    }
-
-    for (const index of [2, 3]) {
-      if (/^\d+$/.test(parts[index])) {
-        frames.push(Number(parts[index]));
-      }
-    }
-  }
-
-  return frames;
-}
-
-function shouldScale(entry, settings) {
-  const frames = collectTransitionFrames(settings.transition_frame_info);
-  for (const key of ["thumbnail_system_frame_no", "thumbnail_lock_frame_no", "thumbnail_frame_no"]) {
-    if (typeof settings[key] === "number") {
-      frames.push(settings[key]);
-    }
-  }
-  if (typeof entry.frame_no === "number") {
-    frames.push(entry.frame_no);
-  }
-
-  return frames.some((frame) => frame > 1079 || frame === 270);
-}
-
-function scaleTransitionInfo(info) {
-  if (typeof info !== "string") {
-    return info;
-  }
-
-  return info.split(/\n/).map((line) => {
-    const parts = line.trim().split(/\s+/);
-    if (parts.length < 5) {
-      return line;
-    }
-
-    for (const index of [2, 3]) {
-      if (/^\d+$/.test(parts[index])) {
-        parts[index] = String(scaleFrame(Number(parts[index])));
-      }
-    }
-
-    return parts.join(" ");
-  }).join("\n");
-}
-
-function adjustEntry(entry) {
-  const settings = entry?.type_params?.service_settings;
-  const filename = settings?.filename || entry?.filename;
-  if (!settings || !/^video_\d+\.mp4$/i.test(filename || "")) {
-    return;
-  }
-
-  if (!shouldScale(entry, settings)) {
-    return;
-  }
-
-  for (const key of ["thumbnail_system_frame_no", "thumbnail_lock_frame_no", "thumbnail_frame_no"]) {
-    settings[key] = scaleFrame(settings[key]);
-  }
-  entry.frame_no = scaleFrame(entry.frame_no);
-  settings.transition_frame_info = scaleTransitionInfo(settings.transition_frame_info);
-  adjusted += 1;
-}
-
-function visit(value) {
-  if (Array.isArray(value)) {
-    value.forEach(visit);
-    return;
-  }
-
-  if (!value || typeof value !== "object") {
-    return;
-  }
-
-  adjustEntry(value);
-  Object.values(value).forEach(visit);
-}
-
-visit(data);
-
-if (adjusted > 0) {
-  fs.writeFileSync(file, `${JSON.stringify(data, null, 2)}\n`);
-}
-
-console.log(adjusted);
-NODE
-}
 # ]
 
-LOG "- Using source wallpaper resources"
-WALLPAPER_APK_DIR="$APKTOOL_DIR/system/priv-app/wallpaper-res/wallpaper-res.apk"
-DECODE_APK "system" "system/priv-app/wallpaper-res/wallpaper-res.apk" || return 1
-if ! PROCESS_WALLPAPER_DECLARED_RESOURCES "$WALLPAPER_APK_DIR"; then
-    LOG "\033[0;33m! resources_info scan failed. Falling back to legacy wallpaper globs\033[0m"
-    PROCESS_WALLPAPER_LEGACY_GLOBS "$WALLPAPER_APK_DIR" || return 1
+ADD_TO_WORK_DIR "pa2qxxx" "system" \
+    "system/priv-app/wallpaper-res/wallpaper-res.apk" 0 0 644 "u:object_r:system_file:s0"
+DECODE_APK "system" "system/priv-app/wallpaper-res/wallpaper-res.apk"
+for f in "$APKTOOL_DIR/system/priv-app/wallpaper-res/wallpaper-res.apk/res/drawable-nodpi/dex_wallpaper_"*.webp; do
+    COMPRESS_WEBP "$f"
+done
+for f in "$APKTOOL_DIR/system/priv-app/wallpaper-res/wallpaper-res.apk/res/drawable-nodpi/wallpaper_"*.webp; do
+    COMPRESS_WEBP "$f"
+done
+for f in "$APKTOOL_DIR/system/priv-app/wallpaper-res/wallpaper-res.apk/res/raw/video_"*.mp4; do
+    ENCODE_MP4 "$f"
+done
+if [ "$SOURCE_PLATFORM_SDK_VERSION" -ge "36" ]; then
+    # Android 16's SpriteWallpaper no longer keeps transition timing in the
+    # old C1/b static field. It consumes the values from resources_info.json,
+    # so the stock app is compatible with the metadata patch below.
+    LOG "- Keeping native Android 16 Samsung Wallpaper app"
+else
+    LOG "- Downloading latest Samsung Wallpaper app"
+    DOWNLOAD_FILE "$(GET_GALAXY_STORE_DOWNLOAD_URL "000008552712")" \
+        "$WORK_DIR/system/system/priv-app/SpriteWallpaper/SpriteWallpaper.apk"
+    APPLY_PATCH "system" "system/priv-app/SpriteWallpaper/SpriteWallpaper.apk" \
+        "$MODPATH/SpriteWallpaper.apk/0001-Force-Paradigm-wallpapers-motion-animator.patch"
+    APPLY_PATCH "system" "system/priv-app/SpriteWallpaper/SpriteWallpaper.apk" \
+        "$MODPATH/SpriteWallpaper.apk/0002-Adjust-motion-animator-for-60fps-video-files.patch"
 fi
-ADJUSTED_WALLPAPER_METADATA="$(ADJUST_WALLPAPER_METADATA "$WALLPAPER_APK_DIR/res/raw/resources_info.json")" || return 1
-if [ "$ADJUSTED_WALLPAPER_METADATA" -gt "0" ]; then
-    LOG "- Adjusted metadata for $ADJUSTED_WALLPAPER_METADATA video wallpaper(s)"
-fi
-LOG "- Using source Samsung Wallpaper app"
-APPLY_PATCH "system" "system/priv-app/SpriteWallpaper/SpriteWallpaper.apk" \
-    "$MODPATH/SpriteWallpaper.apk/0001-Force-Miracle-wallpapers-motion-animator.patch"
-APPLY_PATCH "system" "system/priv-app/SpriteWallpaper/SpriteWallpaper.apk" \
-    "$MODPATH/SpriteWallpaper.apk/0002-Adjust-motion-animator-for-60fps-video-files.patch"
+APPLY_PATCH "system" "system/priv-app/wallpaper-res/wallpaper-res.apk" \
+    "$MODPATH/wallpaper-res.apk/0001-Adjust-metadata-for-60fps-video-files.patch"
 
-unset -f \
-    ADJUST_WALLPAPER_METADATA \
-    ENCODE_MP4 \
-    COMPRESS_WEBP \
-    LIST_WALLPAPER_RESOURCE_NAMES \
-    PROCESS_WALLPAPER_DECLARED_RESOURCES \
-    PROCESS_WALLPAPER_LEGACY_GLOBS \
-    RESOLVE_WALLPAPER_RESOURCE_FILE
-unset ADJUSTED_WALLPAPER_METADATA WALLPAPER_APK_DIR
+unset -f ENCODE_MP4 COMPRESS_WEBP

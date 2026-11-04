@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen android:title="@string/unica_hma_title" settings:hierarchicalParentFragment="io.mesalabs.unica.settings.spoof.SpoofSettingsFragment" settings:topLevelPreferenceKey="unica_spoof_settings"
-  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:settings="http://schemas.android.com/apk/res-auto">
-    <com.android.settings.widget.SettingsMainSwitchPreference android:title="@string/unica_hma_title" android:key="unica_hma_switch" settings:searchable="false" />
-    <com.samsung.android.settings.widget.SecInsetCategoryPreference />
-</PreferenceScreen>

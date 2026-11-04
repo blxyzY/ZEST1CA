@@ -1,2 +1,2 @@
-# Keep the UN1CA boot sound enabled by default.
-persist.sys.unica.bootsound=true
+# Enable boot sound by default
+persist.sys.artisanrom.bootsound=true

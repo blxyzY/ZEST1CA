@@ -1,2 +1,0 @@
-# Newer Samsung Camera app parity flag from the supplied One UI feature set.
-ro.camera.default_app_social_media_parity_enabled=true

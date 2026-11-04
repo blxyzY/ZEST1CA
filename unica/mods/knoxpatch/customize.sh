@@ -1,142 +1,133 @@
-# Remove the legacy WSM userspace stack. It cannot provide a valid trust
-# result on an unlocked device and only adds another failing HAL path.
+# Nuke WSM
 DELETE_FROM_WORK_DIR "system" "system/etc/public.libraries-wsm.samsung.txt"
 DELETE_FROM_WORK_DIR "system" "system/lib/libhal.wsm.samsung.so"
 DELETE_FROM_WORK_DIR "system" "system/lib/vendor.samsung.hardware.security.wsm.service-V1-ndk.so"
 DELETE_FROM_WORK_DIR "system" "system/lib64/libhal.wsm.samsung.so"
 DELETE_FROM_WORK_DIR "system" "system/lib64/vendor.samsung.hardware.security.wsm.service-V1-ndk.so"
 
-# Install the static KnoxPatch dispatcher into framework.jar. The dispatcher
-# scopes app-facing spoofing to the same packages as upstream KnoxPatch.
-DECODE_APK "system" "system/framework/framework.jar"
-mkdir -p "$APKTOOL_DIR/system/framework/framework.jar/smali_classes6/io/mesalabs/unica"
-cp -f "$MODPATH/framework.jar/KnoxPatchHooks.smali" \
-    "$APKTOOL_DIR/system/framework/framework.jar/smali_classes6/io/mesalabs/unica/KnoxPatchHooks.smali"
-
-# Initialise package-scoped behavior when an application is created.
+# Add KnoxPatchHooks
+APPLY_PATCH "system" "system/framework/framework.jar" \
+    "$MODPATH/framework.jar/0001-Introduce-KnoxPatchHooks.patch"
 SMALI_PATCH "system" "system/framework/framework.jar" \
     "smali/android/app/Instrumentation.smali" "replace" \
     'newApplication(Ljava/lang/Class;Landroid/content/Context;)Landroid/app/Application;' \
     'return-object p0' \
-    '    invoke-static {p1}, Lio/mesalabs/unica/KnoxPatchHooks;->init(Landroid/content/Context;)V\n\n    return-object p0'
+    '    invoke-static {p1}, Lio/mesalabs/unica/KnoxPatchHooks;->init(Landroid/content/Context;)V\n\n    return-object p0' \
+    > /dev/null
 SMALI_PATCH "system" "system/framework/framework.jar" \
     "smali/android/app/Instrumentation.smali" "replace" \
     'newApplication(Ljava/lang/ClassLoader;Ljava/lang/String;Landroid/content/Context;)Landroid/app/Application;' \
     'return-object p0' \
-    '    invoke-static {p3}, Lio/mesalabs/unica/KnoxPatchHooks;->init(Landroid/content/Context;)V\n\n    return-object p0'
+    '    invoke-static {p3}, Lio/mesalabs/unica/KnoxPatchHooks;->init(Landroid/content/Context;)V\n\n    return-object p0' \
+    > /dev/null
+APPLY_PATCH "system" "system/framework/knoxsdk.jar" \
+    "$MODPATH/knoxsdk.jar/0001-Introduce-KnoxPatchHooks.patch"
 
-# Intercept both SystemProperties overloads. SemSystemProperties delegates to
-# these methods on One UI 9, so this covers Auto Blocker, Secure Folder,
-# Secure Wi-Fi, SmartThings, FMM and the system-server ASKS check.
-SMALI_PATCH "system" "system/framework/framework.jar" \
-    "smali_classes3/android/os/SystemProperties.smali" "replace" \
-    'get(Ljava/lang/String;)Ljava/lang/String;' \
-    '.locals 0' '.locals 1'
-SMALI_PATCH "system" "system/framework/framework.jar" \
-    "smali_classes3/android/os/SystemProperties.smali" "replace" \
-    'get(Ljava/lang/String;)Ljava/lang/String;' \
-    'invoke-static {p0}, Landroid/os/SystemProperties;->native_get(Ljava/lang/String;)Ljava/lang/String;' \
-    '    invoke-static {p0}, Lio/mesalabs/unica/KnoxPatchHooks;->onSystemPropertiesGet(Ljava/lang/String;)Ljava/lang/String;\n\n    move-result-object v0\n\n    if-eqz v0, :unica_knoxpatch_get\n\n    return-object v0\n\n    :unica_knoxpatch_get\n    invoke-static {p0}, Landroid/os/SystemProperties;->native_get(Ljava/lang/String;)Ljava/lang/String;'
-SMALI_PATCH "system" "system/framework/framework.jar" \
-    "smali_classes3/android/os/SystemProperties.smali" "replace" \
-    'get(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;' \
-    '.locals 0' '.locals 1'
-SMALI_PATCH "system" "system/framework/framework.jar" \
-    "smali_classes3/android/os/SystemProperties.smali" "replace" \
-    'get(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;' \
-    'invoke-static {p0, p1}, Landroid/os/SystemProperties;->native_get(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;' \
-    '    invoke-static {p0, p1}, Lio/mesalabs/unica/KnoxPatchHooks;->onSystemPropertiesGet(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;\n\n    move-result-object v0\n\n    if-eqz v0, :unica_knoxpatch_get_default\n\n    return-object v0\n\n    :unica_knoxpatch_get_default\n    invoke-static {p0, p1}, Landroid/os/SystemProperties;->native_get(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;'
-
-# Hide known root managers from the package query used by KnoxPatch's
-# supported third-party apps. KernelSU/SUSFS handles filesystem/process
-# visibility; this closes the framework PackageManager path.
-SMALI_PATCH "system" "system/framework/framework.jar" \
-    "smali/android/app/ApplicationPackageManager.smali" "replace" \
-    'getPackageInfo(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;' \
-    'int-to-long v0, p2' \
-    '    invoke-static {p1}, Lio/mesalabs/unica/KnoxPatchHooks;->onPackageNameQuery(Ljava/lang/String;)Ljava/lang/String;\n\n    move-result-object p1\n\n    int-to-long v0, p2'
-
-# Samsung Health expects Knox SDK to report unsupported only in its process.
-SMALI_PATCH "system" "system/framework/knoxsdk.jar" \
-    "smali/com/samsung/android/knox/EnterpriseDeviceManager.smali" "replace" \
-    'getAPILevel()I' \
-    'invoke-static {}, Lcom/samsung/android/knox/EdmUtils;->getAPILevelForInternal()I' \
-    '    invoke-static {}, Lio/mesalabs/unica/KnoxPatchHooks;->shouldDisableKnoxSdk()Z\n\n    move-result v0\n\n    if-eqz v0, :unica_knoxpatch_edm\n\n    const/4 v0, -0x1\n\n    return v0\n\n    :unica_knoxpatch_edm\n    invoke-static {}, Lcom/samsung/android/knox/EdmUtils;->getAPILevelForInternal()I'
-
-# SAK/ICD: make verifiable integrity available through both copies used by
-# One UI 9. The services.jar copy accesses the field directly; the public
-# samsungkeystoreutils.jar copy uses the accessor.
+# Bypass ICD verification
 SMALI_PATCH "system" "system/framework/samsungkeystoreutils.jar" \
     "smali/com/samsung/android/security/keystore/AttestParameterSpec.smali" "return" \
     'isVerifiableIntegrity()Z' 'true'
-SMALI_PATCH "system" "system/framework/services.jar" \
-    "smali_classes2/com/samsung/android/security/keystore/AttestationUtils.smali" "replace" \
-    'generateKeyPair(Lcom/samsung/android/security/keystore/AttestParameterSpec;)Ljava/security/KeyPair;' \
-    'iget-object v0, p1, Lcom/samsung/android/security/keystore/AttestParameterSpec;->mSpec:Landroid/security/keystore/KeyGenParameterSpec;' \
-    '    const/4 v0, 0x1\n\n    iput-boolean v0, p1, Lcom/samsung/android/security/keystore/AttestParameterSpec;->mVerifiableIntegrity:Z\n\n    iget-object v0, p1, Lcom/samsung/android/security/keystore/AttestParameterSpec;->mSpec:Landroid/security/keystore/KeyGenParameterSpec;'
+APPLY_PATCH "system" "system/framework/services.jar" \
+    "$MODPATH/services.jar/0001-Bypass-ICD-verification.patch"
+APPLY_PATCH "system" "system/framework/services.jar" \
+    "$MODPATH/services.jar/0002-Test-bypass-Knox-key-installability.patch"
 
-# Secure Folder/work-profile trust decisions moved behind DAR binder methods.
+# Disable SAK in DarManagerService
 SMALI_PATCH "system" "system/framework/services.jar" \
     "smali/com/android/server/knox/dar/DarManagerService.smali" "return" \
     'checkDeviceIntegrity([Ljava/security/cert/Certificate;)Z' 'true'
+
+# Disable DRK in DarManagerService
 SMALI_PATCH "system" "system/framework/services.jar" \
     "smali/com/android/server/knox/dar/DarManagerService.smali" "return" \
     'isDeviceRootKeyInstalled()Z' 'true'
-SMALI_PATCH "system" "system/framework/services.jar" \
-    "smali/com/android/server/knox/dar/DarManagerService.smali" "return" \
-    'isKnoxKeyInstallable()Z' 'true'
+
+# Disable root checks in StorageManagerService
 SMALI_PATCH "system" "system/framework/services.jar" \
     "smali/com/android/server/StorageManagerService.smali" "return" \
     'isRootedDevice()Z' 'false'
 
-# One UI 9 replaced KnoxGuardSeService with KnoxGuard30Service. Match the
-# upstream KnoxPatch behavior at the new constructor boundary: throw after
-# the Binder stub is initialised so SystemServer's existing catch path skips
-# registration without entering the missing KG30 vendor AIDL path.
-SMALI_PATCH "system" "system/framework/services.jar" \
-    "smali_classes2/com/samsung/android/knoxguard30/service/KnoxGuard30Service.smali" "replace" \
-    '<init>(Landroid/content/Context;)V' \
-    'sput-object p1, Lcom/samsung/android/knoxguard30/service/KnoxGuard30Service;->mContext:Landroid/content/Context;' \
-    '    new-instance v0, Ljava/lang/UnsupportedOperationException;\n\n    const-string v1, "KnoxGuard 3.0 is unsupported on this port"\n\n    invoke-direct {v0, v1}, Ljava/lang/UnsupportedOperationException;-><init>(Ljava/lang/String;)V\n\n    throw v0'
+# Spoof ROT/IntegrityStatus in Knox Matrix
+GET_GALAXY_STORE_DOWNLOAD_URL() {
+    local package_name="$1"
+    # Gunakan direct link dari rilis resmi KnoxPatch/KmxService di GitHub untuk menghindari kegagalan cURL Galaxy Store
+    echo "https://raw.githubusercontent.com/mesalabs/knoxpatch_files/main/apks/KmxService.apk"
+}
 
-# Knox Matrix 3.x verifies parsed attestation objects through FabricCertUtil.
-# Patch the decision points as well as the value-object accessors used by its
-# other trust-chain implementations. Do not download a moving Galaxy Store
-# build during ROM compilation.
-if [ -f "$WORK_DIR/system/system/priv-app/KmxService/KmxService.apk" ]; then
-    SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-        "smali_classes2/com/samsung/android/kmxservice/fabrickeystore/keystore/cert/FabricCertUtil.smali" "return" \
-        'checkIntegrityStatus(Lcom/samsung/android/kmxservice/fabrickeystore/keystore/cert/IntegrityStatus;)Z' 'true'
-    SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-        "smali_classes2/com/samsung/android/kmxservice/fabrickeystore/keystore/cert/FabricCertUtil.smali" "return" \
-        'checkRootOfTrust(Lcom/samsung/android/kmxservice/fabrickeystore/keystore/cert/RootOfTrust;)Z' 'true'
+# Spoof ROT/IntegrityStatus in Knox Matrix
+# Cek apakah file KmxService.apk sudah tersedia secara lokal di dalam folder modul
+LOCAL_KMX_APK="$MODPATH/KmxService/KmxService.apk"
 
-    for ROOT_OF_TRUST in \
-        "common/util/RootOfTrust" \
-        "fabrickeystore/keystore/cert/RootOfTrust" \
-        "sdk/trustchain/util/RootOfTrust"
-    do
-        SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-            "smali_classes2/com/samsung/android/kmxservice/$ROOT_OF_TRUST.smali" "return" \
-            'getVerifiedBootState()I' '0'
-        SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-            "smali_classes2/com/samsung/android/kmxservice/$ROOT_OF_TRUST.smali" "return" \
-            'isDeviceLocked()Z' 'true'
-    done
+if [ -f "$LOCAL_KMX_APK" ]; then
+    LOG "- Menggunakan file KmxService.apk lokal..."
+    
+    # Buat direktori tujuan di work_dir jika belum ada
+    mkdir -p "$WORK_DIR/system/system/priv-app/KmxService"
+    
+    # Salin file APK lokal ke direktori kerja build
+    cp -f "$LOCAL_KMX_APK" "$WORK_DIR/system/system/priv-app/KmxService/KmxService.apk"
+    
+    # Validasi apakah file berhasil disalin dan tidak kosong
+    if [ ! -s "$WORK_DIR/system/system/priv-app/KmxService/KmxService.apk" ]; then
+        ABORT "KmxService.apk lokal kosong atau gagal disalin!"
+    fi
 
+    DECODE_APK "system" "system/priv-app/KmxService/KmxService.apk"
+    KMX_APK="$APKTOOL_DIR/system/priv-app/KmxService/KmxService.apk"
+    
+    KMX_COMMON_ROT="$(find "$KMX_APK" -type f \
+        -path '*/com/samsung/android/kmxservice/common/util/RootOfTrust.smali' -printf '%P\n' -quit)"
+    KMX_FABRIC_ROT="$(find "$KMX_APK" -type f \
+        -path '*/com/samsung/android/kmxservice/fabrickeystore/keystore/cert/RootOfTrust.smali' -printf '%P\n' -quit)"
+    KMX_TRUSTCHAIN_ROT="$(find "$KMX_APK" -type f \
+        -path '*/com/samsung/android/kmxservice/sdk/trustchain/util/RootOfTrust.smali' -printf '%P\n' -quit)"
+    KMX_COMMON_STATUS="$(find "$KMX_APK" -type f \
+        -path '*/com/samsung/android/kmxservice/common/util/IntegrityStatus.smali' -printf '%P\n' -quit)"
+    KMX_FABRIC_STATUS="$(find "$KMX_APK" -type f \
+        -path '*/com/samsung/android/kmxservice/fabrickeystore/keystore/cert/IntegrityStatus.smali' -printf '%P\n' -quit)"
+    KMX_TRUSTCHAIN_STATUS="$(find "$KMX_APK" -type f \
+        -path '*/com/samsung/android/kmxservice/sdk/trustchain/util/IntegrityStatus.smali' -printf '%P\n' -quit)"
+        
+    [ "$KMX_COMMON_ROT" ] && [ "$KMX_FABRIC_ROT" ] && [ "$KMX_TRUSTCHAIN_ROT" ] && \
+        [ "$KMX_COMMON_STATUS" ] && [ "$KMX_FABRIC_STATUS" ] && [ "$KMX_TRUSTCHAIN_STATUS" ] || \
+        ABORT "Knox Matrix integrity classes not found"
+        
     SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-        "smali_classes2/com/samsung/android/kmxservice/common/util/IntegrityStatus.smali" "return" \
+        "$KMX_COMMON_ROT" "return" \
+        'getVerifiedBootState()I' '0'
+    SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
+        "$KMX_COMMON_ROT" "return" \
+        'isDeviceLocked()Z' 'true'
+    SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
+        "$KMX_FABRIC_ROT" "return" \
+        'getVerifiedBootState()I' '0'
+    SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
+        "$KMX_FABRIC_ROT" "return" \
+        'isDeviceLocked()Z' 'true'
+    SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
+        "$KMX_TRUSTCHAIN_ROT" "return" \
+        'getVerifiedBootState()I' '0'
+    SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
+        "$KMX_TRUSTCHAIN_ROT" "return" \
+        'isDeviceLocked()Z' 'true'
+    SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
+        "$KMX_COMMON_STATUS" "return" \
         'getStatus()I' '0'
     SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-        "smali_classes2/com/samsung/android/kmxservice/common/util/IntegrityStatus.smali" "return" \
+        "$KMX_COMMON_STATUS" "return" \
         'isNormal()Z' 'true'
     SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-        "smali_classes2/com/samsung/android/kmxservice/fabrickeystore/keystore/cert/IntegrityStatus.smali" "return" \
+        "$KMX_FABRIC_STATUS" "return" \
         'isNormal()Z' 'true'
     SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-        "smali_classes2/com/samsung/android/kmxservice/sdk/trustchain/util/IntegrityStatus.smali" "return" \
+        "$KMX_TRUSTCHAIN_STATUS" "return" \
         'getStatus()I' '0'
     SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-        "smali_classes2/com/samsung/android/kmxservice/sdk/trustchain/util/IntegrityStatus.smali" "return" \
+        "$KMX_TRUSTCHAIN_STATUS" "return" \
         'isNormal()Z' 'true'
+        
+    unset KMX_APK KMX_COMMON_ROT KMX_FABRIC_ROT KMX_TRUSTCHAIN_ROT
+    unset KMX_COMMON_STATUS KMX_FABRIC_STATUS KMX_TRUSTCHAIN_STATUS
+else
+    ABORT "KmxService.apk tidak ditemukan di folder $MODPATH/KmxService/"
 fi

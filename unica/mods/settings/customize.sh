@@ -1,6 +1,9 @@
-if [ ! "$(GET_PROP "system" "ro.unica.version")" ]; then
-    SET_PROP "system" "ro.unica.version" "$ROM_VERSION"
+# Show battery regulatory info in Settings
+# Requires SEM_BATTERY_PROPERTY_IC_AUTHENTICATION_RESULT support
+if [ "$(GET_FLOATING_FEATURE_CONFIG "SEC_FLOATING_FEATURE_BATTERY_SUPPORT_BSOH_SETTINGS")" ]; then
+    SET_FLOATING_FEATURE_CONFIG "SEC_FLOATING_FEATURE_BATTERY_SUPPORT_BSOH_SETTINGS" --delete
 fi
+SET_FLOATING_FEATURE_CONFIG "SEC_FLOATING_FEATURE_SETTINGS_ENABLE_EU_BATTERY_REGULATORY" "TRUE"
 
 SMALI_PATCH "system" "system/framework/framework.jar" \
     "smali/android/app/Instrumentation.smali" "replace" \
@@ -15,181 +18,55 @@ SMALI_PATCH "system" "system/framework/framework.jar" \
     '    invoke-virtual {p0, p3}, Landroid/app/Application;->attach(Landroid/content/Context;)V\n\n    invoke-static {p3}, Lio/mesalabs/unica/SamsungPropsHooks;->init(Landroid/content/Context;)V' \
     > /dev/null
 
-# Route SystemProperties.get through SamsungPropsHooks (Galaxy Store / apps device spoof)
-SYSPROPS_SMALI="$(find "$APKTOOL_DIR/system/framework/framework.jar" -type f \
-    -path '*/android/os/SystemProperties.smali' -printf '%P\n' -quit)"
-[ "$SYSPROPS_SMALI" ] || ABORT "SystemProperties.smali not found"
-if ! grep -q "SamsungPropsHooks;->onSystemPropertiesGet" \
-        "$APKTOOL_DIR/system/framework/framework.jar/$SYSPROPS_SMALI"; then
-    SMALI_PATCH "system" "system/framework/framework.jar" \
-        "$SYSPROPS_SMALI" "replace" \
-        'get(Ljava/lang/String;)Ljava/lang/String;' \
-        'invoke-static {p0}, Landroid/os/SystemProperties;->native_get(Ljava/lang/String;)Ljava/lang/String;' \
-        '    invoke-static {p0}, Lio/mesalabs/unica/SamsungPropsHooks;->onSystemPropertiesGet(Ljava/lang/String;)Ljava/lang/String;\n\n    move-result-object v0\n\n    if-eqz v0, :cond_unica_spoof\n\n    return-object v0\n\n    :cond_unica_spoof\n    invoke-static {p0}, Landroid/os/SystemProperties;->native_get(Ljava/lang/String;)Ljava/lang/String;' \
-        > /dev/null
-    SMALI_PATCH "system" "system/framework/framework.jar" \
-        "$SYSPROPS_SMALI" "replace" \
-        'get(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;' \
-        'invoke-static {p0, p1}, Landroid/os/SystemProperties;->native_get(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;' \
-        '    invoke-static {p0}, Lio/mesalabs/unica/SamsungPropsHooks;->onSystemPropertiesGet(Ljava/lang/String;)Ljava/lang/String;\n\n    move-result-object v0\n\n    if-eqz v0, :cond_unica_spoof\n\n    return-object v0\n\n    :cond_unica_spoof\n    invoke-static {p0, p1}, Landroid/os/SystemProperties;->native_get(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;' \
-        > /dev/null
+DECODE_APK "system" "system/priv-app/SecSettings/SecSettings.apk"
+SECSETTINGS_APK="$APKTOOL_DIR/system/priv-app/SecSettings/SecSettings.apk"
+
+# Disable stock OTA references
+if [ ! -f "$WORK_DIR/system/system/priv-app/ChoiDujour/ChoiDujour.apk" ]; then
+    SOFTWARE_UPDATE_UTILS="$(find "$SECSETTINGS_APK" \
+        -type f -path '*/com/samsung/android/settings/softwareupdate/SoftwareUpdateUtils.smali' -printf '%P\n' -quit)"
+    [ "$SOFTWARE_UPDATE_UTILS" ] || ABORT "SoftwareUpdateUtils.smali not found"
+    if grep -q -F '.method public static isOTAUpgradeAllowed(Landroid/content/Context;)Z' \
+            "$SECSETTINGS_APK/$SOFTWARE_UPDATE_UTILS"; then
+        SMALI_PATCH "system" "system/priv-app/SecSettings/SecSettings.apk" \
+            "$SOFTWARE_UPDATE_UTILS" "return" \
+            'isOTAUpgradeAllowed(Landroid/content/Context;)Z' \
+            'false'
+    else
+        SOFTWARE_UPDATE_CONTROLLER="$(find "$SECSETTINGS_APK" \
+            -type f -path '*/com/samsung/android/settings/homepage/TopLevelSoftwareUpdatePreferenceController.smali' \
+            -printf '%P\n' -quit)"
+        [ "$SOFTWARE_UPDATE_CONTROLLER" ] || \
+            ABORT "TopLevelSoftwareUpdatePreferenceController.smali not found"
+        SMALI_PATCH "system" "system/priv-app/SecSettings/SecSettings.apk" \
+            "$SOFTWARE_UPDATE_CONTROLLER" "return" \
+            'getAvailabilityStatus()I' \
+            '3'
+    fi
+    unset SOFTWARE_UPDATE_UTILS
 fi
 
-DECODE_APK "system" "system/priv-app/SecSettings/SecSettings.apk"
-
 # Always show One UI minor version
+ONEUI_VERSION_CONTROLLER="$(find "$SECSETTINGS_APK" -type f \
+    -path '*/com/samsung/android/settings/deviceinfo/softwareinfo/OneUIVersionPreferenceController.smali' \
+    -printf '%P\n' -quit)"
+[ "$ONEUI_VERSION_CONTROLLER" ] || ABORT "OneUIVersionPreferenceController.smali not found"
 SMALI_PATCH "system" "system/priv-app/SecSettings/SecSettings.apk" \
-    "smali_classes3/com/samsung/android/settings/deviceinfo/softwareinfo/OneUIVersionPreferenceController.smali" "replace" \
+    "$ONEUI_VERSION_CONTROLLER" "replace" \
     'isDeviceWithMicroVersion()Z' \
     'move-result p0' \
     'const/4 p0, 0x1'
 
 # Show real device model number
+MODEL_NAME_GETTER="$(find "$SECSETTINGS_APK" -type f \
+    -path '*/com/samsung/android/settings/deviceinfo/aboutphone/ModelNameGetter.smali' \
+    -printf '%P\n' -quit)"
+[ "$MODEL_NAME_GETTER" ] || ABORT "ModelNameGetter.smali not found"
 SMALI_PATCH "system" "system/priv-app/SecSettings/SecSettings.apk" \
-    "smali_classes3/com/samsung/android/settings/deviceinfo/aboutphone/ModelNameGetter.smali" "replace" \
+    "$MODEL_NAME_GETTER" "replace" \
     'getModelName()Ljava/lang/String;' \
     'ro.product.model' \
     'ro.boot.em.model'
-
-# Add backend hooks for Settings toggles that live outside SecSettings.
-DECODE_APK "system" "system/framework/framework.jar"
-EVAL "mkdir -p \"$APKTOOL_DIR/system/framework/framework.jar/smali_classes6/io/mesalabs/unica\""
-EVAL "cp -f \"$MODPATH/framework.jar/FloatingFeatureHooks.smali\" \"$APKTOOL_DIR/system/framework/framework.jar/smali_classes6/io/mesalabs/unica/FloatingFeatureHooks.smali\""
-
-SMALI_PATCH "system" "system/framework/framework.jar" \
-    "smali_classes6/com/samsung/android/feature/SemFloatingFeature.smali" "replace" \
-    'getBoolean(Ljava/lang/String;)Z' \
-    '.locals 1' \
-    '.locals 2'
-SMALI_PATCH "system" "system/framework/framework.jar" \
-    "smali_classes6/com/samsung/android/feature/SemFloatingFeature.smali" "replace" \
-    'getBoolean(Ljava/lang/String;)Z' \
-    'iget-object p0, p0, Lcom/samsung/android/feature/SemFloatingFeature;->mFeatureList:Ljava/util/Hashtable;' \
-    'invoke-static {p1}, Lio/mesalabs/unica/FloatingFeatureHooks;->onGetBoolean(Ljava/lang/String;)Ljava/lang/Boolean;\n\n    move-result-object v1\n\n    if-eqz v1, :unica_ff_bool\n\n    invoke-virtual {v1}, Ljava/lang/Boolean;->booleanValue()Z\n\n    move-result p0\n\n    return p0\n\n    :unica_ff_bool\n    iget-object p0, p0, Lcom/samsung/android/feature/SemFloatingFeature;->mFeatureList:Ljava/util/Hashtable;'
-SMALI_PATCH "system" "system/framework/framework.jar" \
-    "smali_classes6/com/samsung/android/feature/SemFloatingFeature.smali" "replace" \
-    'getInt(Ljava/lang/String;)I' \
-    '.locals 1' \
-    '.locals 2'
-SMALI_PATCH "system" "system/framework/framework.jar" \
-    "smali_classes6/com/samsung/android/feature/SemFloatingFeature.smali" "replace" \
-    'getInt(Ljava/lang/String;)I' \
-    'iget-object p0, p0, Lcom/samsung/android/feature/SemFloatingFeature;->mFeatureList:Ljava/util/Hashtable;' \
-    'invoke-static {p1}, Lio/mesalabs/unica/FloatingFeatureHooks;->onGetInt(Ljava/lang/String;)Ljava/lang/Integer;\n\n    move-result-object v1\n\n    if-eqz v1, :unica_ff_int\n\n    invoke-virtual {v1}, Ljava/lang/Integer;->intValue()I\n\n    move-result p0\n\n    return p0\n\n    :unica_ff_int\n    iget-object p0, p0, Lcom/samsung/android/feature/SemFloatingFeature;->mFeatureList:Ljava/util/Hashtable;'
-SMALI_PATCH "system" "system/framework/framework.jar" \
-    "smali_classes6/com/samsung/android/feature/SemFloatingFeature.smali" "replace" \
-    'getString(Ljava/lang/String;)Ljava/lang/String;' \
-    '.locals 1' \
-    '.locals 2'
-SMALI_PATCH "system" "system/framework/framework.jar" \
-    "smali_classes6/com/samsung/android/feature/SemFloatingFeature.smali" "replace" \
-    'getString(Ljava/lang/String;)Ljava/lang/String;' \
-    'iget-object p0, p0, Lcom/samsung/android/feature/SemFloatingFeature;->mFeatureList:Ljava/util/Hashtable;' \
-    'invoke-static {p1}, Lio/mesalabs/unica/FloatingFeatureHooks;->onGetString(Ljava/lang/String;)Ljava/lang/String;\n\n    move-result-object v1\n\n    if-eqz v1, :unica_ff_string\n\n    move-object p0, v1\n\n    return-object p0\n\n    :unica_ff_string\n    iget-object p0, p0, Lcom/samsung/android/feature/SemFloatingFeature;->mFeatureList:Ljava/util/Hashtable;'
-
-SMALI_PATCH "system" "system/framework/services.jar" \
-    'smali_classes2/com/android/server/wm/WindowManagerService$SettingsObserver.smali' "replace" \
-    '<init>(Lcom/android/server/wm/WindowManagerService;)V' \
-    'disable_secure_windows' \
-    'unica_secure_ss'
-SMALI_PATCH "system" "system/framework/services.jar" \
-    'smali_classes2/com/android/server/wm/WindowManagerService$SettingsObserver.smali' "replace" \
-    '<init>(Lcom/android/server/wm/WindowManagerService;)V' \
-    'invoke-static {v9}, Landroid/provider/Settings$Secure;->getUriFor(Ljava/lang/String;)Landroid/net/Uri;' \
-    'invoke-static {v9}, Landroid/provider/Settings$System;->getUriFor(Ljava/lang/String;)Landroid/net/Uri;'
-SMALI_PATCH "system" "system/framework/services.jar" \
-    'smali_classes2/com/android/server/wm/WindowManagerService$SettingsObserver.smali' "replace" \
-    'updateDisableSecureWindows()V' \
-    'if-nez v0, :cond_0' \
-    'goto :cond_0'
-SMALI_PATCH "system" "system/framework/services.jar" \
-    'smali_classes2/com/android/server/wm/WindowManagerService$SettingsObserver.smali' "replace" \
-    'updateDisableSecureWindows()V' \
-    'disable_secure_windows' \
-    'unica_secure_ss'
-SMALI_PATCH "system" "system/framework/services.jar" \
-    'smali_classes2/com/android/server/wm/WindowManagerService$SettingsObserver.smali' "replace" \
-    'updateDisableSecureWindows()V' \
-    'invoke-static {v0, v2, v1}, Landroid/provider/Settings$Secure;->getIntForUser(Landroid/content/ContentResolver;Ljava/lang/String;I)I' \
-    'invoke-static {v0, v2, v1}, Landroid/provider/Settings$System;->getInt(Landroid/content/ContentResolver;Ljava/lang/String;I)I'
-
-SMALI_PATCH "system" "system/framework/services.jar" \
-    "smali_classes2/com/android/server/wm/ScreenRecordingCallbackController.smali" "replace" \
-    'dispatchCallbacks(Landroid/util/ArraySet;Z)V' \
-    '.locals 5' \
-    '.locals 8'
-SMALI_PATCH "system" "system/framework/services.jar" \
-    "smali_classes2/com/android/server/wm/ScreenRecordingCallbackController.smali" "replace" \
-    'dispatchCallbacks(Landroid/util/ArraySet;Z)V' \
-    'invoke-virtual {p1}, Landroid/util/ArraySet;->isEmpty()Z' \
-    'iget-object v5, p0, Lcom/android/server/wm/ScreenRecordingCallbackController;->mWms:Lcom/android/server/wm/WindowManagerService;\n\n    iget-object v5, v5, Lcom/android/server/wm/WindowManagerService;->mContext:Landroid/content/Context;\n\n    invoke-virtual {v5}, Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;\n\n    move-result-object v5\n\n    const-string v6, "unica_ss_detection"\n\n    const/4 v7, 0x0\n\n    invoke-static {v5, v6, v7}, Landroid/provider/Settings$System;->getInt(Landroid/content/ContentResolver;Ljava/lang/String;I)I\n\n    move-result v5\n\n    if-eqz v5, :unica_ss_detection_callbacks\n\n    const/4 p2, 0x0\n\n    :unica_ss_detection_callbacks\n    invoke-virtual {p1}, Landroid/util/ArraySet;->isEmpty()Z'
-SMALI_PATCH "system" "system/framework/services.jar" \
-    "smali_classes2/com/android/server/wm/WindowManagerService.smali" "replace" \
-    'notifyScreenshotListeners(I)Ljava/util/List;' \
-    '.locals 4' \
-    '.locals 7'
-SMALI_PATCH "system" "system/framework/services.jar" \
-    "smali_classes2/com/android/server/wm/WindowManagerService.smali" "replace" \
-    'notifyScreenshotListeners(I)Ljava/util/List;' \
-    'iget-object v0, p0, Lcom/android/server/wm/WindowManagerService;->mGlobalLock:Lcom/android/server/wm/WindowManagerGlobalLock;' \
-    'iget-object v4, p0, Lcom/android/server/wm/WindowManagerService;->mContext:Landroid/content/Context;\n\n    invoke-virtual {v4}, Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;\n\n    move-result-object v4\n\n    const-string v5, "unica_ss_detection"\n\n    const/4 v6, 0x0\n\n    invoke-static {v4, v5, v6}, Landroid/provider/Settings$System;->getInt(Landroid/content/ContentResolver;Ljava/lang/String;I)I\n\n    move-result v4\n\n    if-eqz v4, :unica_ss_detection_notify\n\n    invoke-static {}, Ljava/util/Collections;->emptyList()Ljava/util/List;\n\n    move-result-object p0\n\n    return-object p0\n\n    :unica_ss_detection_notify\n    const/4 v2, 0x1\n\n    iget-object v0, p0, Lcom/android/server/wm/WindowManagerService;->mGlobalLock:Lcom/android/server/wm/WindowManagerGlobalLock;'
-SMALI_PATCH "system" "system/framework/services.jar" \
-    "smali_classes2/com/android/server/wm/WindowManagerService.smali" "replace" \
-    'registerScreenRecordingCallback(Landroid/window/IScreenRecordingCallback;)Z' \
-    '.locals 8' \
-    '.locals 11'
-SMALI_PATCH "system" "system/framework/services.jar" \
-    "smali_classes2/com/android/server/wm/WindowManagerService.smali" "replace" \
-    'registerScreenRecordingCallback(Landroid/window/IScreenRecordingCallback;)Z' \
-    'iget-object p0, p0, Lcom/android/server/wm/WindowManagerService;->mScreenRecordingCallbackController:Lcom/android/server/wm/ScreenRecordingCallbackController;' \
-    'iget-object v8, p0, Lcom/android/server/wm/WindowManagerService;->mContext:Landroid/content/Context;\n\n    invoke-virtual {v8}, Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;\n\n    move-result-object v8\n\n    const-string v9, "unica_ss_detection"\n\n    const/4 v10, 0x0\n\n    invoke-static {v8, v9, v10}, Landroid/provider/Settings$System;->getInt(Landroid/content/ContentResolver;Ljava/lang/String;I)I\n\n    move-result v8\n\n    if-eqz v8, :unica_ss_detection_register\n\n    return v10\n\n    :unica_ss_detection_register\n    iget-object p0, p0, Lcom/android/server/wm/WindowManagerService;->mScreenRecordingCallbackController:Lcom/android/server/wm/ScreenRecordingCallbackController;'
-
-SMALI_PATCH "system" "system/framework/services.jar" \
-    "smali_classes2/com/android/server/pm/PackageManagerService.smali" "replace" \
-    'verifyReplacingVersionCode(Landroid/content/pm/PackageInfoLite;JI)Landroid/util/Pair;' \
-    'invoke-virtual {v2}, Ljava/lang/Object;->getClass()Ljava/lang/Class;' \
-    'invoke-virtual {v2}, Ljava/lang/Object;->getClass()Ljava/lang/Class;\n\n    iget-object v12, v2, Lcom/android/server/pm/InstallPackageHelper;->mContext:Landroid/content/Context;\n\n    invoke-virtual {v12}, Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;\n\n    move-result-object v12\n\n    const-string v13, "unica_allow_downgrade"\n\n    const/4 v14, 0x0\n\n    invoke-static {v12, v13, v14}, Landroid/provider/Settings$System;->getInt(Landroid/content/ContentResolver;Ljava/lang/String;I)I\n\n    move-result v12\n\n    if-eqz v12, :unica_allow_downgrade\n\n    const v12, 0x100080\n\n    or-int/2addr v3, v12\n\n    :unica_allow_downgrade'
-SMALI_PATCH "system" "system/framework/services.jar" \
-    "smali_classes2/com/android/server/pm/InstallPackageHelper.smali" "replace" \
-    'preparePackage(Lcom/android/server/pm/InstallRequest;)V' \
-    '.locals 43' \
-    '.locals 45'
-SMALI_PATCH "system" "system/framework/services.jar" \
-    "smali_classes2/com/android/server/pm/InstallPackageHelper.smali" "replace" \
-    'preparePackage(Lcom/android/server/pm/InstallRequest;)V' \
-    'if-nez v0, :cond_19' \
-    'if-nez v0, :cond_19\n\n    const-string v43, "persist.sys.unica.sdkbypass"\n\n    const/16 v44, 0x0\n\n    invoke-static/range {v43 .. v44}, Landroid/os/SystemProperties;->getBoolean(Ljava/lang/String;Z)Z\n\n    move-result v43\n\n    if-nez v43, :cond_19'
-
-SMALI_PATCH "system" "system/framework/services.jar" \
-    "smali/com/android/server/asks/ASKSManagerService.smali" "replace" \
-    'getUnknownAppsDataFromXML(ILjava/util/ArrayList;Ljava/util/HashMap;Z)V' \
-    'ro.build.official.release' \
-    'persist.sys.unica.asks'
-SMALI_PATCH "system" "system/framework/services.jar" \
-    "smali/com/android/server/asks/ASKSManagerService.smali" "replace" \
-    'getUnknownAppsDataFromXML(ILjava/util/ArrayList;Ljava/util/HashMap;Z)V' \
-    'false' \
-    'true'
-SMALI_PATCH "system" "system/framework/services.jar" \
-    "smali/com/android/server/asks/ASKSManagerService.smali" "replace" \
-    'refreshInstalledUnknownList_NEW()V' \
-    'ro.build.official.release' \
-    'persist.sys.unica.asks'
-SMALI_PATCH "system" "system/framework/services.jar" \
-    "smali/com/android/server/asks/ASKSManagerService.smali" "replace" \
-    'refreshInstalledUnknownList_NEW()V' \
-    'false' \
-    'true'
-SMALI_PATCH "system" "system/framework/services.jar" \
-    "smali/com/android/server/asks/ASKSManagerService.smali" "replace" \
-    'verifyASKStokenForPackage(Ljava/lang/String;Ljava/lang/String;J[Landroid/content/pm/Signature;Ljava/lang/String;Ljava/lang/String;Z)I' \
-    'ro.build.official.release' \
-    'persist.sys.unica.asks'
-SMALI_PATCH "system" "system/framework/services.jar" \
-    "smali/com/android/server/asks/ASKSManagerService.smali" "replace" \
-    'verifyASKStokenForPackage(Ljava/lang/String;Ljava/lang/String;J[Landroid/content/pm/Signature;Ljava/lang/String;Ljava/lang/String;Z)I' \
-    'invoke-static {v6}, Landroid/os/SystemProperties;->get(Ljava/lang/String;)Ljava/lang/String;' \
-    'const-string/jumbo v10, "true"\n\n    invoke-static {v6, v10}, Landroid/os/SystemProperties;->get(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;'
 
 LOG_STEP_IN "- Adding UN1CA Settings"
 
@@ -201,8 +78,13 @@ LOG_STEP_IN "- Adding UN1CA Settings"
 while IFS= read -r f; do
     f="${f//$MODPATH\/SecSettings.apk\//}"
 
+    # Full XML overlays (for example unica_ui_settings.xml) may already exist
+    # in an incremental work-dir.  They are documents, not sed instructions;
+    # copy them again instead of attempting to execute their XML declaration.
+    # res/values XML remains additive and is handled by the branch below.
     if [ ! -f "$APKTOOL_DIR/system/priv-app/SecSettings/SecSettings.apk/$f" ] || \
-            [[ "$f" != *".xml" ]]; then
+            [[ "$f" != *".xml" ]] || \
+            { [[ "$f" != *"res/values"* ]] && head -n 1 "$MODPATH/SecSettings.apk/$f" | grep -q '^<?xml '; }; then
         LOG "- Adding \"$f\" to /system/system/priv-app/SecSettings.apk"
         EVAL "mkdir -p \"$(dirname "$APKTOOL_DIR/system/priv-app/SecSettings/SecSettings.apk/$f")\""
         EVAL "cp -a \"$MODPATH/SecSettings.apk/${f//\$/\\$}\" \"$APKTOOL_DIR/system/priv-app/SecSettings/SecSettings.apk/${f//\$/\\$}\""
@@ -221,34 +103,78 @@ while IFS= read -r f; do
     fi
 done < <(find "$MODPATH/SecSettings.apk" -type f)
 
-# Add UN1CA Settings SearchIndexDataProvider(s)
-LOG "- Patching \"smali_classes2/com/android/settings/search/SearchFeatureProviderImpl\$\$ExternalSyntheticLambda0.smali\" in /system/system/priv-app/SecSettings.apk"
+# Add UN1CA Settings SearchIndexableData registrations
+SEARCH_INDEXABLE_RESOURCES="$(find "$SECSETTINGS_APK" -type f \
+    -path '*/com/android/settingslib/search/SearchIndexableResourcesMobile.smali' -printf '%P\n' -quit)"
+SEARCH_FEATURE_PROVIDER="$(find "$SECSETTINGS_APK" -type f \
+    -path '*/com/android/settings/search/SearchFeatureProviderImpl$$ExternalSyntheticLambda0.smali' \
+    -printf '%P\n' -quit)"
+[ "$SEARCH_INDEXABLE_RESOURCES" ] || ABORT "SearchIndexableResourcesMobile.smali not found"
+[ "$SEARCH_FEATURE_PROVIDER" ] || ABORT "SearchFeatureProviderImpl lambda not found"
+LOG "- Patching \"$SEARCH_INDEXABLE_RESOURCES\" in /system/system/priv-app/SecSettings.apk"
 SMALI_PATCH "system" "system/priv-app/SecSettings/SecSettings.apk" \
-    "smali_classes2/com/android/settings/search/SearchFeatureProviderImpl\$\$ExternalSyntheticLambda0.smali" "replace" \
+    "$SEARCH_INDEXABLE_RESOURCES" "replaceall" \
+    '.class public final Lcom/android/settingslib/search/SearchIndexableResourcesMobile;' \
+    '.class public Lcom/android/settingslib/search/SearchIndexableResourcesMobile;' \
+    > /dev/null
+LOG "- Patching \"$SEARCH_FEATURE_PROVIDER\" in /system/system/priv-app/SecSettings.apk"
+SMALI_PATCH "system" "system/priv-app/SecSettings/SecSettings.apk" \
+    "$SEARCH_FEATURE_PROVIDER" "replace" \
     'invoke()Ljava/lang/Object;' \
     'return-object p0' \
-    '    new-instance v0, Lcom/android/settingslib/search/SearchIndexableData;\n\n    const-class v1, Lio/mesalabs/unica/settings/UnicaSettingsFragment;\n\n    sget-object v2, Lio/mesalabs/unica/settings/UnicaSettingsFragment;->SEARCH_INDEX_DATA_PROVIDER:Lcom/android/settings/search/BaseSearchIndexProvider;\n\n    invoke-direct {v0, v1, v2}, Lcom/android/settingslib/search/SearchIndexableData;-><init>(Ljava/lang/Class;Lcom/android/settingslib/search/Indexable$SearchIndexProvider;)V\n\n    invoke-virtual {p0, v0}, Lcom/android/settingslib/search/SearchIndexableResourcesBase;->addIndex(Lcom/android/settingslib/search/SearchIndexableData;)V\n\n    new-instance v0, Lcom/android/settingslib/search/SearchIndexableData;\n\n    const-class v1, Lio/mesalabs/unica/settings/extra/ExtraSettingsFragment;\n\n    sget-object v2, Lio/mesalabs/unica/settings/extra/ExtraSettingsFragment;->SEARCH_INDEX_DATA_PROVIDER:Lcom/android/settings/search/BaseSearchIndexProvider;\n\n    invoke-direct {v0, v1, v2}, Lcom/android/settingslib/search/SearchIndexableData;-><init>(Ljava/lang/Class;Lcom/android/settingslib/search/Indexable$SearchIndexProvider;)V\n\n    invoke-virtual {p0, v0}, Lcom/android/settingslib/search/SearchIndexableResourcesBase;->addIndex(Lcom/android/settingslib/search/SearchIndexableData;)V\n\n    new-instance v0, Lcom/android/settingslib/search/SearchIndexableData;\n\n    const-class v1, Lio/mesalabs/unica/settings/spoof/SpoofSettingsFragment;\n\n    sget-object v2, Lio/mesalabs/unica/settings/spoof/SpoofSettingsFragment;->SEARCH_INDEX_DATA_PROVIDER:Lcom/android/settings/search/BaseSearchIndexProvider;\n\n    invoke-direct {v0, v1, v2}, Lcom/android/settingslib/search/SearchIndexableData;-><init>(Ljava/lang/Class;Lcom/android/settingslib/search/Indexable$SearchIndexProvider;)V\n\n    invoke-virtual {p0, v0}, Lcom/android/settingslib/search/SearchIndexableResourcesBase;->addIndex(Lcom/android/settingslib/search/SearchIndexableData;)V\n\n    new-instance v0, Lcom/android/settingslib/search/SearchIndexableData;\n\n    const-class v1, Lio/mesalabs/unica/settings/ui/UISettingsFragment;\n\n    sget-object v2, Lio/mesalabs/unica/settings/ui/UISettingsFragment;->SEARCH_INDEX_DATA_PROVIDER:Lcom/android/settings/search/BaseSearchIndexProvider;\n\n    invoke-direct {v0, v1, v2}, Lcom/android/settingslib/search/SearchIndexableData;-><init>(Ljava/lang/Class;Lcom/android/settingslib/search/Indexable$SearchIndexProvider;)V\n\n    invoke-virtual {p0, v0}, Lcom/android/settingslib/search/SearchIndexableResourcesBase;->addIndex(Lcom/android/settingslib/search/SearchIndexableData;)V\n\n    return-object p0' \
-    > /dev/null
-DECODE_APK "system" "system/priv-app/SecSettingsIntelligence/SecSettingsIntelligence.apk"
-LOG "- Patching \"smali_classes2/com/samsung/android/settings/intelligence/search/categorizing/TopLevelKeysCollector.smali\" in /system/system/priv-app/SecSettingsIntelligence/SecSettingsIntelligence.apk"
-SMALI_PATCH "system" "system/priv-app/SecSettingsIntelligence/SecSettingsIntelligence.apk" \
-    "smali_classes2/com/samsung/android/settings/intelligence/search/categorizing/TopLevelKeysCollector.smali" "replace" \
-    '<init>(Landroid/content/Context;)V' \
-    '.locals 37' \
-    '.locals 38' \
-    > /dev/null
-SMALI_PATCH "system" "system/priv-app/SecSettingsIntelligence/SecSettingsIntelligence.apk" \
-    "smali_classes2/com/samsung/android/settings/intelligence/search/categorizing/TopLevelKeysCollector.smali" "replace" \
-    '<init>(Landroid/content/Context;)V' \
-    'filled-new-array/range {v1 .. v36}, [Ljava/lang/String;' \
-    '    const-string v37, "top_level_unica"\n\n    filled-new-array/range {v1 .. v37}, [Ljava/lang/String;' \
+    '    invoke-static {p0}, Lio/mesalabs/unica/search/UnicaSearchIndexableResources;->addIndexes(Lcom/android/settingslib/search/SearchIndexableResourcesBase;)V\n\n    return-object p0' \
     > /dev/null
 
+DECODE_APK "system" "system/priv-app/SecSettingsIntelligence/SecSettingsIntelligence.apk"
+TOP_LEVEL_KEYS_COLLECTOR="$(find "$APKTOOL_DIR/system/priv-app/SecSettingsIntelligence/SecSettingsIntelligence.apk" \
+    -type f -path '*/com/samsung/android/settings/intelligence/search/categorizing/TopLevelKeysCollector.smali' \
+    -printf '%P\n' -quit)"
+[ "$TOP_LEVEL_KEYS_COLLECTOR" ] || ABORT "TopLevelKeysCollector.smali not found"
+LOG "- Patching \"$TOP_LEVEL_KEYS_COLLECTOR\" in /system/system/priv-app/SecSettingsIntelligence/SecSettingsIntelligence.apk"
+TOP_LEVEL_KEYS_FILE="$APKTOOL_DIR/system/priv-app/SecSettingsIntelligence/SecSettingsIntelligence.apk/$TOP_LEVEL_KEYS_COLLECTOR"
+if ! grep -q -F '"top_level_unica"' "$TOP_LEVEL_KEYS_FILE"; then
+    TOP_LEVEL_KEYS_LOCALS="$(awk '
+        /^\.method .*<init>\(Landroid\/content\/Context;\)V$/ { inside=1; next }
+        inside && /^    \.locals [0-9]+$/ { print $2; exit }
+    ' "$TOP_LEVEL_KEYS_FILE")"
+    TOP_LEVEL_KEYS_ARRAY="$(awk '
+        /^\.method .*<init>\(Landroid\/content\/Context;\)V$/ { inside=1; next }
+        inside && /filled-new-array\/range \{v1 \.\. v[0-9]+\}, \[Ljava\/lang\/String;/ {
+            print
+            exit
+        }
+        inside && /^\.end method$/ { exit }
+    ' "$TOP_LEVEL_KEYS_FILE")"
+    if [[ ! "$TOP_LEVEL_KEYS_LOCALS" =~ ^[0-9]+$ ]] || \
+            [[ ! "$TOP_LEVEL_KEYS_ARRAY" =~ v1[[:space:]]+\.\.[[:space:]]+v([0-9]+) ]]; then
+        ABORT "Unable to resolve TopLevelKeysCollector registers"
+    fi
+    TOP_LEVEL_KEYS_LAST_REGISTER="${BASH_REMATCH[1]}"
+    TOP_LEVEL_KEYS_NEW_REGISTER=$((TOP_LEVEL_KEYS_LAST_REGISTER + 1))
+    TOP_LEVEL_KEYS_NEW_LOCALS=$((TOP_LEVEL_KEYS_LOCALS + 1))
+    SMALI_PATCH "system" "system/priv-app/SecSettingsIntelligence/SecSettingsIntelligence.apk" \
+        "$TOP_LEVEL_KEYS_COLLECTOR" "replace" \
+        '<init>(Landroid/content/Context;)V' \
+        ".locals $TOP_LEVEL_KEYS_LOCALS" \
+        ".locals $TOP_LEVEL_KEYS_NEW_LOCALS" \
+        > /dev/null
+    SMALI_PATCH "system" "system/priv-app/SecSettingsIntelligence/SecSettingsIntelligence.apk" \
+        "$TOP_LEVEL_KEYS_COLLECTOR" "replace" \
+        '<init>(Landroid/content/Context;)V' \
+        "$TOP_LEVEL_KEYS_ARRAY" \
+        "    const-string v$TOP_LEVEL_KEYS_NEW_REGISTER, \"top_level_unica\"\n\n    filled-new-array/range {v1 .. v$TOP_LEVEL_KEYS_NEW_REGISTER}, [Ljava/lang/String;" \
+        > /dev/null
+fi
+
 # Show Vulkan renderer toggle if required
-if [[ "$(GET_PROP "vendor" "ro.hwui.use_vulkan")" != "true" ]]; then
+if [[ "$(GET_PROP "ro.hwui.use_vulkan")" != "true" ]]; then
     SET_PROP "system" "persist.sys.unica.vulkan" "false"
 fi
 
-unset PATCH_INST CONTENT
+unset PATCH_INST CONTENT SECSETTINGS_APK SOFTWARE_UPDATE_UTILS SOFTWARE_UPDATE_CONTROLLER
+unset ONEUI_VERSION_CONTROLLER MODEL_NAME_GETTER SEARCH_INDEXABLE_RESOURCES SEARCH_FEATURE_PROVIDER
+unset TOP_LEVEL_KEYS_COLLECTOR
+unset TOP_LEVEL_KEYS_FILE TOP_LEVEL_KEYS_LOCALS TOP_LEVEL_KEYS_ARRAY
+unset TOP_LEVEL_KEYS_LAST_REGISTER TOP_LEVEL_KEYS_NEW_REGISTER TOP_LEVEL_KEYS_NEW_LOCALS
 
 LOG_STEP_OUT

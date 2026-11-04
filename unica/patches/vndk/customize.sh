@@ -225,8 +225,8 @@ VALIDATE_LEGACY_VNDK() {
     fi
 
     VENDOR_SDK="$(GET_PROP vendor ro.vendor.build.version.sdk)"
-    if [ -n "$VENDOR_SDK" ] && [ "$VENDOR_SDK" -ne "$TARGET_PLATFORM_SDK_VERSION" ]; then
-        ABORT "Vendor SDK $VENDOR_SDK does not match target platform SDK $TARGET_PLATFORM_SDK_VERSION"
+    if [ -n "$VENDOR_SDK" ] && [ "$VENDOR_SDK" -ne "$TARGET_VNDK_VERSION" ]; then
+        ABORT "Vendor SDK $VENDOR_SDK does not match target VNDK $TARGET_VNDK_VERSION"
         return 1
     fi
 

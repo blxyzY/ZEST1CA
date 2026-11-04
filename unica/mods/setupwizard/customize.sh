@@ -1,26 +1,30 @@
 DECODE_APK "system" "system/priv-app/SecSetupWizard_Global/SecSetupWizard_Global.apk"
 
-_SETUPWIZARD_APK_DIR="$APKTOOL_DIR/system/priv-app/SecSetupWizard_Global/SecSetupWizard_Global.apk"
-_SETUPWIZARD_LIST_SMALI="$_SETUPWIZARD_APK_DIR/smali/e7/f.smali"
-_SETUPWIZARD_ACTIVITY_SMALI="$_SETUPWIZARD_APK_DIR/smali/com/sec/android/app/SecSetupWizard/SecSetupWizardActivity.smali"
-
 LOG "- Enabling navigation bar type settings step"
-if grep -q "navigationbar_setting" "$_SETUPWIZARD_LIST_SMALI"; then
-    SMALI_PATCH "system" "system/priv-app/SecSetupWizard_Global/SecSetupWizard_Global.apk" \
-        "smali/e7/f.smali" "replace" \
-        "d(Landroid/content/Context;Z)Ljava/util/ArrayList;" \
-        "navigationbar_setting" \
-        "this_string_does_not_exist" \
-        > /dev/null
-fi
-if grep -q "navigationbar_setting" "$_SETUPWIZARD_ACTIVITY_SMALI"; then
-    SMALI_PATCH "system" "system/priv-app/SecSetupWizard_Global/SecSetupWizard_Global.apk" \
-        "smali/com/sec/android/app/SecSetupWizard/SecSetupWizardActivity.smali" "replace" \
-        "e(Ljava/lang/String;)Z" \
-        "navigationbar_setting" \
-        "this_string_does_not_exist" \
-        > /dev/null
-fi
+SETUPWIZARD_APK="$APKTOOL_DIR/system/priv-app/SecSetupWizard_Global/SecSetupWizard_Global.apk"
+NAV_STEP_FILE="$(find "$SETUPWIZARD_APK" -type f -name '*.smali' \
+    -exec grep -lF '"navigationbar_setting"' {} + \
+    | grep -v '/com/sec/android/app/SecSetupWizard/SecSetupWizardActivity.smali$' | sed -n '1p')"
+[ "$NAV_STEP_FILE" ] || ABORT "Navigation bar setup step implementation not found"
+NAV_STEP_METHOD="$(awk '/^\.method/{method=$0} /"navigationbar_setting"/{print method; exit}' "$NAV_STEP_FILE" \
+    | sed -E 's/^\.method ([^ ]+ )*//')"
+NAV_STEP_FILE="${NAV_STEP_FILE//$SETUPWIZARD_APK\//}"
+SMALI_PATCH "system" "system/priv-app/SecSetupWizard_Global/SecSetupWizard_Global.apk" \
+    "$NAV_STEP_FILE" "replace" \
+    "$NAV_STEP_METHOD" \
+    "navigationbar_setting" \
+    "this_string_does_not_exist" \
+    > /dev/null
+SETUPWIZARD_ACTIVITY="smali/com/sec/android/app/SecSetupWizard/SecSetupWizardActivity.smali"
+SETUPWIZARD_ACTIVITY_METHOD="$(awk '/^\.method/{method=$0} /"navigationbar_setting"/{print method; exit}' \
+    "$SETUPWIZARD_APK/$SETUPWIZARD_ACTIVITY" | sed -E 's/^\.method ([^ ]+ )*//')"
+SMALI_PATCH "system" "system/priv-app/SecSetupWizard_Global/SecSetupWizard_Global.apk" \
+    "$SETUPWIZARD_ACTIVITY" "replace" \
+    "$SETUPWIZARD_ACTIVITY_METHOD" \
+    "navigationbar_setting" \
+    "this_string_does_not_exist" \
+    > /dev/null
+unset NAV_STEP_FILE NAV_STEP_METHOD SETUPWIZARD_ACTIVITY SETUPWIZARD_ACTIVITY_METHOD
 
 LOG "- Disabling Recommended apps step"
 EVAL "sed -i \"/omcagent/d\" \"$APKTOOL_DIR/system/priv-app/SecSetupWizard_Global/SecSetupWizard_Global.apk/res/values/arrays.xml\""
@@ -42,9 +46,6 @@ while IFS= read -r f; do
         LOG "- Patching \"$f\" in /system/system/priv-app/SecSetupWizard_Global.apk"
         if [[ "$f" == *"res/values"* ]]; then
             PATCH_INST="/<\/resources>/i"
-            while IFS= read -r RESOURCE_NAME; do
-                EVAL "sed -i \"/name=\\\"$RESOURCE_NAME\\\"/d\" \"$APKTOOL_DIR/system/priv-app/SecSetupWizard_Global/SecSetupWizard_Global.apk/$f\""
-            done < <(sed -n 's/.*name="\([^"]*\)".*/\1/p' "$MODPATH/SecSetupWizard_Global.apk/$f")
             CONTENT="$(sed -e "/?xml/d" -e "/resources>/d" "$MODPATH/SecSetupWizard_Global.apk/$f")"
         else
             PATCH_INST="$(head -n 1 "$MODPATH/SecSetupWizard_Global.apk/$f")"
@@ -56,104 +57,100 @@ while IFS= read -r f; do
     fi
 done < <(find "$MODPATH/SecSetupWizard_Global.apk" -type f)
 
-_SETUPWIZARD_PUBLIC_ID()
-{
-    local TYPE="$1"
-    local NAME="$2"
-    local PUBLIC_XML="$APKTOOL_DIR/system/priv-app/SecSetupWizard_Global/SecSetupWizard_Global.apk/res/values/public.xml"
-    local ID
-    local LAST
-    local NEXT
+if [ "$SOURCE_PLATFORM_SDK_VERSION" -ge "36" ]; then
+    LOG "- Porting custom disclaimer page to Android 16"
+    SETUPWIZARD_PUBLIC="$SETUPWIZARD_APK/res/values/public.xml"
 
-    ID="$(sed -n "s/.*<public type=\"$TYPE\" name=\"$NAME\" id=\"\\(0x[0-9a-fA-F]*\\)\".*/\\1/p" "$PUBLIC_XML" | head -n 1)"
-    if [ "$ID" ]; then
-        echo "$ID"
-        return 0
+    if ! grep -q 'name="suw_ic_unica"' "$SETUPWIZARD_PUBLIC"; then
+        LAST_DRAWABLE_ID="$(grep '<public type="drawable"' "$SETUPWIZARD_PUBLIC" \
+            | tail -n 1 | sed -n 's/.* id="\(0x[0-9a-fA-F]*\)".*/\1/p')"
+        DISCLAIMER_ICON_ID="$(printf '0x%08x' "$((LAST_DRAWABLE_ID + 1))")"
+        awk -v entry="    <public type=\"drawable\" name=\"suw_ic_unica\" id=\"$DISCLAIMER_ICON_ID\" />" '
+            !inserted && /<public type="id"/ { print entry; inserted = 1 }
+            { print }
+        ' "$SETUPWIZARD_PUBLIC" > "$SETUPWIZARD_PUBLIC.tmp"
+        EVAL "mv \"$SETUPWIZARD_PUBLIC.tmp\" \"$SETUPWIZARD_PUBLIC\""
+    else
+        DISCLAIMER_ICON_ID="$(sed -n 's/.*name="suw_ic_unica" id="\(0x[0-9a-fA-F]*\)".*/\1/p' "$SETUPWIZARD_PUBLIC")"
     fi
 
-    LAST="$(sed -n "s/.*<public type=\"$TYPE\" .* id=\"0x\\([0-9a-fA-F]*\\)\".*/\\1/p" "$PUBLIC_XML" | tail -n 1)"
-    [ "$LAST" ] || return 1
+    if ! grep -q 'name="disclaimer_unica_description"' "$SETUPWIZARD_PUBLIC"; then
+        LAST_STRING_ID="$(grep '<public type="string"' "$SETUPWIZARD_PUBLIC" \
+            | tail -n 1 | sed -n 's/.* id="\(0x[0-9a-fA-F]*\)".*/\1/p')"
+        DISCLAIMER_STRING_ID="$(printf '0x%08x' "$((LAST_STRING_ID + 1))")"
+        awk -v entry="    <public type=\"string\" name=\"disclaimer_unica_description\" id=\"$DISCLAIMER_STRING_ID\" />" '
+            !inserted && /<public type="style"/ { print entry; inserted = 1 }
+            { print }
+        ' "$SETUPWIZARD_PUBLIC" > "$SETUPWIZARD_PUBLIC.tmp"
+        EVAL "mv \"$SETUPWIZARD_PUBLIC.tmp\" \"$SETUPWIZARD_PUBLIC\""
+    else
+        DISCLAIMER_STRING_ID="$(sed -n 's/.*name="disclaimer_unica_description" id="\(0x[0-9a-fA-F]*\)".*/\1/p' "$SETUPWIZARD_PUBLIC")"
+    fi
 
-    NEXT="$(printf "0x%08x" "$((16#$LAST + 1))")"
-    sed -i "/<\/resources>/i\\    <public type=\"$TYPE\" name=\"$NAME\" id=\"$NEXT\" />" "$PUBLIC_XML"
-    echo "$NEXT"
-}
+    DISCLAIMER_STEP_FILE="$(find "$SETUPWIZARD_APK" -type f -name '*.smali' \
+        -exec grep -lF '"disclaimer"' {} + | sed -n '1p')"
+    [ "$DISCLAIMER_STEP_FILE" ] || ABORT "Disclaimer setup step implementation not found"
+    DISCLAIMER_STEP_METHOD="$(awk '/^\.method/{method=$0} /"disclaimer"/{print method; exit}' \
+        "$DISCLAIMER_STEP_FILE" | sed -E 's/^\.method ([^ ]+ )*//')"
+    DISCLAIMER_STEP_FILE="${DISCLAIMER_STEP_FILE//$SETUPWIZARD_APK\//}"
+    SMALI_PATCH "system" "system/priv-app/SecSetupWizard_Global/SecSetupWizard_Global.apk" \
+        "$DISCLAIMER_STEP_FILE" "replace" "$DISCLAIMER_STEP_METHOD" \
+        "disclaimer" "this_string_does_not_exist" > /dev/null
 
-_SETUPWIZARD_ICON_ID="$(_SETUPWIZARD_PUBLIC_ID "drawable" "suw_ic_unica")" || return 1
-_SETUPWIZARD_TEXT_ID="$(_SETUPWIZARD_PUBLIC_ID "string" "disclaimer_unica_description")" || return 1
+    DISCLAIMER_ACTIVITY="$SETUPWIZARD_APK/smali/com/sec/android/app/SecSetupWizard/UI/DisclaimerActivity.smali"
+    DISCLAIMER_BASE_CLASS="$(sed -n 's/^\.super //p' "$DISCLAIMER_ACTIVITY" | sed -n '1p')"
+    DISCLAIMER_BASE_SMALI="$SETUPWIZARD_APK/smali/${DISCLAIMER_BASE_CLASS#L}"
+    DISCLAIMER_BASE_SMALI="${DISCLAIMER_BASE_SMALI%;}.smali"
+    DISCLAIMER_ICON_METHOD="$(sed -n -E 's/^\.method .* ([^ ]+)\(Landroid\/graphics\/drawable\/Drawable;\)V$/\1/p' \
+        "$DISCLAIMER_BASE_SMALI" | sed -n '1p')"
+    [ "$DISCLAIMER_ICON_METHOD" ] || ABORT "Disclaimer icon setter implementation not found"
 
-LOG "- Patching custom disclaimer page in /system/system/priv-app/SecSetupWizard_Global.apk"
-if ! grep -q "UN1CA force disclaimer step" "$_SETUPWIZARD_LIST_SMALI"; then
-    awk '
-        BEGIN { in_disclaimer = 0; changed = 0 }
-        /const-string .*"disclaimer"/ { in_disclaimer = 1 }
-        in_disclaimer && index($0, "if-lez v9, :cond_46") {
-            match($0, /^[ \t]+/)
-            indent = substr($0, RSTART, RLENGTH)
-            print indent "# UN1CA force disclaimer step"
-            print indent "goto :cond_19"
-            changed = 1
-            in_disclaimer = 0
+    awk -v icon_id="$DISCLAIMER_ICON_ID" -v string_id="$DISCLAIMER_STRING_ID" \
+        -v base_class="$DISCLAIMER_BASE_CLASS" -v icon_method="$DISCLAIMER_ICON_METHOD" '
+        /^\.method .* onCreate\(Landroid\/os\/Bundle;\)V$/ { in_on_create = 1 }
+        in_on_create && !icon_added && /->setContentView\(I\)V$/ {
+            print
+            print ""
+            print "    const p1, " icon_id
+            print ""
+            print "    invoke-virtual {p0, p1}, Landroid/content/Context;->getDrawable(I)Landroid/graphics/drawable/Drawable;"
+            print ""
+            print "    move-result-object p1"
+            print ""
+            print "    invoke-virtual {p0, p1}, " base_class "->" icon_method "(Landroid/graphics/drawable/Drawable;)V"
+            icon_added = 1
             next
         }
-        { print }
-        END { if (!changed) exit 1 }
-    ' "$_SETUPWIZARD_LIST_SMALI" > "$_SETUPWIZARD_LIST_SMALI.tmp" && \
-        mv "$_SETUPWIZARD_LIST_SMALI.tmp" "$_SETUPWIZARD_LIST_SMALI"
-    [ $? -ne 0 ] && { LOG "\033[0;31m! ERROR: custom disclaimer sequence patch failed\033[0m"; return 1; }
-fi
-
-_SETUPWIZARD_DISCLAIMER_SMALI="$_SETUPWIZARD_APK_DIR/smali/com/sec/android/app/SecSetupWizard/UI/DisclaimerActivity.smali"
-if ! grep -q "UN1CA custom disclaimer" "$_SETUPWIZARD_DISCLAIMER_SMALI"; then
-    awk -v ICON_ID="$_SETUPWIZARD_ICON_ID" -v TEXT_ID="$_SETUPWIZARD_TEXT_ID" '
-        BEGIN { icon_done = 0; text_done = 0 }
-        {
+        in_on_create && /check-cast p1, Landroid\/widget\/TextView;/ {
             print
-
-            if (!icon_done && index($0, "invoke-virtual {p0, p1}, Ll7/a;->setContentView(I)V")) {
-                print ""
-                print "    # UN1CA custom disclaimer icon"
-                print "    invoke-virtual {p0}, Lh/j;->getResources()Landroid/content/res/Resources;"
-                print ""
-                print "    move-result-object p1"
-                print ""
-                print "    const v1, " ICON_ID
-                print ""
-                print "    invoke-virtual {p0}, Landroid/content/Context;->getTheme()Landroid/content/res/Resources$Theme;"
-                print ""
-                print "    move-result-object v2"
-                print ""
-                print "    invoke-virtual {p1, v1, v2}, Landroid/content/res/Resources;->getDrawable(ILandroid/content/res/Resources$Theme;)Landroid/graphics/drawable/Drawable;"
-                print ""
-                print "    move-result-object p1"
-                print ""
-                print "    invoke-virtual {p0, p1}, Ll7/a;->z(Landroid/graphics/drawable/Drawable;)V"
-                icon_done = 1
-            }
-
-            if (!text_done && index($0, "check-cast p1, Landroid/widget/TextView;")) {
-                print ""
-                print "    # UN1CA custom disclaimer"
-                print "    const v0, " TEXT_ID
-                print ""
-                print "    invoke-virtual {p0, v0}, Landroid/content/Context;->getString(I)Ljava/lang/String;"
-                print ""
-                print "    move-result-object p0"
-                print ""
-                print "    invoke-virtual {p1, p0}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V"
-                print ""
-                print "    return-void"
-                text_done = 1
-            }
+            print ""
+            print "    const v0, " string_id
+            print ""
+            print "    invoke-virtual {p0, v0}, Landroid/content/Context;->getString(I)Ljava/lang/String;"
+            print ""
+            print "    move-result-object p0"
+            print ""
+            print "    invoke-virtual {p1, p0}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V"
+            print ""
+            print "    return-void"
+            replace_tail = 1
+            next
         }
-        END { if (!icon_done || !text_done) exit 1 }
-    ' "$_SETUPWIZARD_DISCLAIMER_SMALI" > "$_SETUPWIZARD_DISCLAIMER_SMALI.tmp" && \
-        mv "$_SETUPWIZARD_DISCLAIMER_SMALI.tmp" "$_SETUPWIZARD_DISCLAIMER_SMALI"
-    [ $? -ne 0 ] && { LOG "\033[0;31m! ERROR: custom disclaimer patch failed\033[0m"; return 1; }
+        replace_tail && /^\.end method$/ {
+            print
+            replace_tail = 0
+            in_on_create = 0
+            next
+        }
+        replace_tail { next }
+        { print }
+    ' "$DISCLAIMER_ACTIVITY" > "$DISCLAIMER_ACTIVITY.tmp"
+    EVAL "mv \"$DISCLAIMER_ACTIVITY.tmp\" \"$DISCLAIMER_ACTIVITY\""
+else
+    APPLY_PATCH "system" "system/priv-app/SecSetupWizard_Global/SecSetupWizard_Global.apk" \
+        "$MODPATH/legacy/SecSetupWizard_Global.apk/0001-Add-custom-disclaimer-page.patch"
 fi
 
-unset PATCH_INST CONTENT
-unset RESOURCE_NAME
-unset _SETUPWIZARD_APK_DIR _SETUPWIZARD_LIST_SMALI _SETUPWIZARD_ACTIVITY_SMALI
-unset _SETUPWIZARD_ICON_ID _SETUPWIZARD_TEXT_ID _SETUPWIZARD_DISCLAIMER_SMALI
-unset -f _SETUPWIZARD_PUBLIC_ID
+unset PATCH_INST CONTENT SETUPWIZARD_PUBLIC LAST_DRAWABLE_ID LAST_STRING_ID \
+    DISCLAIMER_ICON_ID DISCLAIMER_STRING_ID DISCLAIMER_STEP_FILE DISCLAIMER_STEP_METHOD \
+    DISCLAIMER_ACTIVITY DISCLAIMER_BASE_CLASS DISCLAIMER_BASE_SMALI DISCLAIMER_ICON_METHOD

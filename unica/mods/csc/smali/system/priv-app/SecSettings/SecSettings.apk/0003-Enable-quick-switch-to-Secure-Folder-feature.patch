@@ -3,15 +3,18 @@ From: Salvo Giangreco <giangrecosalvo9@gmail.com>
 Date: Mon, 17 Nov 2025 00:46:42 +0100
 Subject: [PATCH] Enable quick switch to Secure Folder feature
 
+One UI 9 already adds SecureFolderAction unconditionally in
+FunctionKeyUtils. Only its Settings search metadata remains gated by the
+presence of aliveprivacy.
+
 ---
  .../android/settings/usefulfeature/Usefulfeature$1.smali | 9 ---------
- 1 file changed, 0 insertions(+), 9 deletions(-)
+ 1 file changed, 9 deletions(-)
 
 diff --git a/smali_classes3/com/samsung/android/settings/usefulfeature/Usefulfeature$1.smali b/smali_classes3/com/samsung/android/settings/usefulfeature/Usefulfeature$1.smali
-index 979ecac3a..500a18679 100644
 --- a/smali_classes3/com/samsung/android/settings/usefulfeature/Usefulfeature$1.smali
 +++ b/smali_classes3/com/samsung/android/settings/usefulfeature/Usefulfeature$1.smali
-@@ -250,14 +250,6 @@
+@@ -251,14 +251,6 @@
  
      iput-object v1, v0, Lcom/android/settingslib/search/SearchIndexableRaw;->keywords:Ljava/lang/String;
  
@@ -26,7 +29,7 @@ index 979ecac3a..500a18679 100644
      new-instance v1, Ljava/lang/StringBuilder;
  
      invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
-@@ -280,7 +272,6 @@
+@@ -281,7 +273,6 @@
  
      iput-object p1, v0, Lcom/android/settingslib/search/SearchIndexableRaw;->keywords:Ljava/lang/String;
  
@@ -34,6 +37,5 @@ index 979ecac3a..500a18679 100644
      const-string p1, "function_key_setting"
  
      iput-object p1, v0, Landroid/provider/SearchIndexableData;->key:Ljava/lang/String;
---
+-- 
 2.51.2
-

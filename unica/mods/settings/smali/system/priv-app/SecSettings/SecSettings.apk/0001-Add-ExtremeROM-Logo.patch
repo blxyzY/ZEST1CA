@@ -22,11 +22,11 @@ index 00000000..9cc66ebc
 +++ b/res/layout/logo.xml
 @@ -0,0 +1,4 @@
 +<?xml version="1.0" encoding="utf-8"?>
-+<FrameLayout android:layout_width="fill_parent" android:layout_height="wrap_content" xmlns:android="http://schemas.android.com/apk/res/android">
-+    <androidx.appcompat.widget.AppCompatImageView android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_gravity="center" android:src="@drawable/logo" android:adjustViewBounds="true" android:scaleType="fitCenter" />
++<FrameLayout android:layout_width="fill_parent" android:background="?roundedCornerColor" android:layout_height="wrap_content" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
++    <androidx.appcompat.widget.AppCompatImageView android:layout_width="fill_parent" android:layout_height="50.0dip" android:layout_gravity="center" android:src="@drawable/logo" android:scaleType="centerInside" app:tint="?colorPrimary" app:tintMode="src_in" />
 +</FrameLayout>
 diff --git a/res/xml/sec_software_info_settings.xml b/res/xml/sec_software_info_settings.xml
-index b85d60ec..1e02bc03 100644
+index bdb717a..580e75d 100644
 --- a/res/xml/sec_software_info_settings.xml
 +++ b/res/xml/sec_software_info_settings.xml
 @@ -1,6 +1,8 @@
@@ -35,9 +35,8 @@ index b85d60ec..1e02bc03 100644
    xmlns:android="http://schemas.android.com/apk/res/android" xmlns:settings="http://schemas.android.com/apk/res-auto">
 +    <com.android.settingslib.widget.LayoutPreference android:layout="@layout/logo" android:selectable="false" android:key="rom_logo" />
 +    <com.samsung.android.settings.widget.SecInsetCategoryPreference />
+     <Preference android:title="@string/artisanrom_version_title" android:key="artisanrom_version" android:summary="@string/summary_placeholder" settings:controller="com.samsung.android.settings.deviceinfo.softwareinfo.ArtisanROMVersionPreferenceController" />
      <Preference android:enabled="false" android:title="@string/one_ui_version_title" android:key="one_ui_version" android:summary="@string/summary_placeholder" android:shouldDisableView="false" settings:controller="com.samsung.android.settings.deviceinfo.softwareinfo.OneUIVersionPreferenceController" />
      <Preference android:title="@string/firmware_version" android:key="android_firmware_version" android:summary="@string/summary_placeholder" settings:controller="com.android.settings.deviceinfo.firmwareversion.FirmwareVersionDetailPreferenceController" />
-     <Preference android:title="@string/module_version" android:key="module_version" android:summary="@string/summary_placeholder" settings:controller="com.android.settings.deviceinfo.firmwareversion.MainlineModuleVersionPreferenceController" />
--- 
-2.50.1
-
+--
+2.53.0
