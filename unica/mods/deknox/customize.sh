@@ -1,3 +1,31 @@
+if [ "$SOURCE_PLATFORM_SDK_VERSION" -ge "36" ]; then
+    # Android 16 moved Knox, DualDAR, SDP and HDM implementation details and
+    # several of their framework classes are shared by non-Knox services.
+    # Deleting the legacy class set leaves dangling references. Keep the
+    # platform implementation intact and disable only the externally visible
+    # services through stable feature gates; KnoxPatch handles integrity
+    # compatibility without changing framework ABIs.
+    LOG "- Using non-destructive Android 16 Knox compatibility mode"
+    SET_PROP_IF_DIFF "vendor" "ro.security.fips.ux" "Disabled"
+
+    APPLY_PATCH "system" "system/framework/services.jar" \
+        "$MODPATH/knoxguard/services.jar/0001-Disable-KnoxGuard.patch"
+
+    SET_FLOATING_FEATURE_CONFIG \
+        "SEC_FLOATING_FEATURE_FRAMEWORK_SUPPORT_BLOCKCHAIN_SERVICE" --delete
+    DECODE_APK "system" "system/framework/framework.jar"
+    PRODUCT_PACKAGES_RUNE="$(find "$APKTOOL_DIR/system/framework/framework.jar" \
+        -type f -path '*/com/samsung/android/ProductPackagesRune.smali' -printf '%P\n' -quit)"
+    if [ "$PRODUCT_PACKAGES_RUNE" ]; then
+        SMALI_PATCH "system" "system/framework/framework.jar" \
+            "$PRODUCT_PACKAGES_RUNE" "replaceall" \
+            "SERVICE_SAMSUNG_BLOCKCHAIN:Z = true" \
+            "SERVICE_SAMSUNG_BLOCKCHAIN:Z = false"
+    fi
+    unset PRODUCT_PACKAGES_RUNE
+    return 0
+fi
+
 SET_PROP_IF_DIFF "vendor" "ro.security.fips.ux" "Disabled"
 
 if [[ "$TARGET_OS_SINGLE_SYSTEM_IMAGE" == "qssi" ]]; then
@@ -80,6 +108,13 @@ if [[ "$TARGET_OS_SINGLE_SYSTEM_IMAGE" == "qssi" ]]; then
     ADD_TO_WORK_DIR "$DONOR" "system" "system/bin/gsid" 0 2000 755 "u:object_r:gsid_exec:s0"
     ADD_TO_WORK_DIR "$DONOR" "system" "system/lib/service.incremental.so" 0 0 644 "u:object_r:system_lib_file:s0"
     ADD_TO_WORK_DIR "$DONOR" "system" "system/lib64/service.incremental.so" 0 0 644 "u:object_r:system_lib_file:s0"
+fi
+
+if [[ "$TARGET_OS_SINGLE_SYSTEM_IMAGE" == "qssi" ]]; then
+    APPLY_PATCH "system" "system/framework/framework.jar" \
+        "$MODPATH/vold/framework.jar/0001-Add-token-argument-in-unlockCeStorage.patch"
+    APPLY_PATCH "system" "system/framework/services.jar" \
+        "$MODPATH/vold/services.jar/0001-Add-token-argument-in-unlockCeStorage.patch"
 fi
 
 unset DONOR
@@ -293,6 +328,10 @@ SMALI_PATCH "system_ext" "priv-app/StorageManager/StorageManager.apk" \
 SMALI_PATCH "system_ext" "priv-app/SystemUI/SystemUI.apk" \
     "smali_classes4/com/samsung/android/knox/integrity/EnhancedAttestationPolicy.smali" "return" \
     'isMposSupported()Z' 'false'
+
+# SEC_PRODUCT_FEATURE_KNOX_SUPPORT_KNOXGUARD
+APPLY_PATCH "system" "system/framework/services.jar" \
+    "$MODPATH/knoxguard/services.jar/0001-Disable-KnoxGuard.patch"
 
 # SEC_PRODUCT_FEATURE_SECURITY_SUPPORT_KNOX_MATRIX_AI_PRIVACY
 APPLY_PATCH "system" "system/framework/framework.jar" \
