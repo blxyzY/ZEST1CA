@@ -29,6 +29,8 @@ SMALI_PATCH "system" "system/framework/samsungkeystoreutils.jar" \
     'isVerifiableIntegrity()Z' 'true'
 APPLY_PATCH "system" "system/framework/services.jar" \
     "$MODPATH/services.jar/0001-Bypass-ICD-verification.patch"
+APPLY_PATCH "system" "system/framework/services.jar" \
+    "$MODPATH/services.jar/0002-Test-bypass-Knox-key-installability.patch"
 
 # Disable SAK in DarManagerService
 SMALI_PATCH "system" "system/framework/services.jar" \
@@ -46,41 +48,86 @@ SMALI_PATCH "system" "system/framework/services.jar" \
     'isRootedDevice()Z' 'false'
 
 # Spoof ROT/IntegrityStatus in Knox Matrix
-if [ -f "$WORK_DIR/system/system/priv-app/KmxService/KmxService.apk" ]; then
-    LOG "- Downloading latest Knox Matrix app"
-    DOWNLOAD_FILE "$(GET_GALAXY_STORE_DOWNLOAD_URL "com.samsung.android.kmxservice")" \
-        "$WORK_DIR/system/system/priv-app/KmxService/KmxService.apk"
+GET_GALAXY_STORE_DOWNLOAD_URL() {
+    local package_name="$1"
+    # Gunakan direct link dari rilis resmi KnoxPatch/KmxService di GitHub untuk menghindari kegagalan cURL Galaxy Store
+    echo "https://raw.githubusercontent.com/mesalabs/knoxpatch_files/main/apks/KmxService.apk"
+}
+
+# Spoof ROT/IntegrityStatus in Knox Matrix
+# Cek apakah file KmxService.apk sudah tersedia secara lokal di dalam folder modul
+LOCAL_KMX_APK="$MODPATH/KmxService/KmxService.apk"
+
+if [ -f "$LOCAL_KMX_APK" ]; then
+    LOG "- Menggunakan file KmxService.apk lokal..."
+    
+    # Buat direktori tujuan di work_dir jika belum ada
+    mkdir -p "$WORK_DIR/system/system/priv-app/KmxService"
+    
+    # Salin file APK lokal ke direktori kerja build
+    cp -f "$LOCAL_KMX_APK" "$WORK_DIR/system/system/priv-app/KmxService/KmxService.apk"
+    
+    # Validasi apakah file berhasil disalin dan tidak kosong
+    if [ ! -s "$WORK_DIR/system/system/priv-app/KmxService/KmxService.apk" ]; then
+        ABORT "KmxService.apk lokal kosong atau gagal disalin!"
+    fi
+
+    DECODE_APK "system" "system/priv-app/KmxService/KmxService.apk"
+    KMX_APK="$APKTOOL_DIR/system/priv-app/KmxService/KmxService.apk"
+    
+    KMX_COMMON_ROT="$(find "$KMX_APK" -type f \
+        -path '*/com/samsung/android/kmxservice/common/util/RootOfTrust.smali' -printf '%P\n' -quit)"
+    KMX_FABRIC_ROT="$(find "$KMX_APK" -type f \
+        -path '*/com/samsung/android/kmxservice/fabrickeystore/keystore/cert/RootOfTrust.smali' -printf '%P\n' -quit)"
+    KMX_TRUSTCHAIN_ROT="$(find "$KMX_APK" -type f \
+        -path '*/com/samsung/android/kmxservice/sdk/trustchain/util/RootOfTrust.smali' -printf '%P\n' -quit)"
+    KMX_COMMON_STATUS="$(find "$KMX_APK" -type f \
+        -path '*/com/samsung/android/kmxservice/common/util/IntegrityStatus.smali' -printf '%P\n' -quit)"
+    KMX_FABRIC_STATUS="$(find "$KMX_APK" -type f \
+        -path '*/com/samsung/android/kmxservice/fabrickeystore/keystore/cert/IntegrityStatus.smali' -printf '%P\n' -quit)"
+    KMX_TRUSTCHAIN_STATUS="$(find "$KMX_APK" -type f \
+        -path '*/com/samsung/android/kmxservice/sdk/trustchain/util/IntegrityStatus.smali' -printf '%P\n' -quit)"
+        
+    [ "$KMX_COMMON_ROT" ] && [ "$KMX_FABRIC_ROT" ] && [ "$KMX_TRUSTCHAIN_ROT" ] && \
+        [ "$KMX_COMMON_STATUS" ] && [ "$KMX_FABRIC_STATUS" ] && [ "$KMX_TRUSTCHAIN_STATUS" ] || \
+        ABORT "Knox Matrix integrity classes not found"
+        
     SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-        "smali/com/samsung/android/kmxservice/common/util/RootOfTrust.smali" "return" \
+        "$KMX_COMMON_ROT" "return" \
         'getVerifiedBootState()I' '0'
     SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-        "smali/com/samsung/android/kmxservice/common/util/RootOfTrust.smali" "return" \
+        "$KMX_COMMON_ROT" "return" \
         'isDeviceLocked()Z' 'true'
     SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-        "smali/com/samsung/android/kmxservice/fabrickeystore/keystore/cert/RootOfTrust.smali" "return" \
+        "$KMX_FABRIC_ROT" "return" \
         'getVerifiedBootState()I' '0'
     SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-        "smali/com/samsung/android/kmxservice/fabrickeystore/keystore/cert/RootOfTrust.smali" "return" \
+        "$KMX_FABRIC_ROT" "return" \
         'isDeviceLocked()Z' 'true'
     SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-        "smali/com/samsung/android/kmxservice/sdk/trustchain/util/RootOfTrust.smali" "return" \
+        "$KMX_TRUSTCHAIN_ROT" "return" \
         'getVerifiedBootState()I' '0'
     SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-        "smali/com/samsung/android/kmxservice/sdk/trustchain/util/RootOfTrust.smali" "return" \
+        "$KMX_TRUSTCHAIN_ROT" "return" \
         'isDeviceLocked()Z' 'true'
     SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-        "smali/com/samsung/android/kmxservice/common/util/IntegrityStatus.smali" "return" \
+        "$KMX_COMMON_STATUS" "return" \
         'getStatus()I' '0'
     SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-        "smali/com/samsung/android/kmxservice/common/util/IntegrityStatus.smali" "return" \
+        "$KMX_COMMON_STATUS" "return" \
         'isNormal()Z' 'true'
     SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-        "smali/com/samsung/android/kmxservice/fabrickeystore/keystore/cert/IntegrityStatus.smali" "return" \
+        "$KMX_FABRIC_STATUS" "return" \
         'isNormal()Z' 'true'
     SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-        "smali/com/samsung/android/kmxservice/sdk/trustchain/util/IntegrityStatus.smali" "return" \
+        "$KMX_TRUSTCHAIN_STATUS" "return" \
         'getStatus()I' '0'
     SMALI_PATCH "system" "system/priv-app/KmxService/KmxService.apk" \
-        "smali/com/samsung/android/kmxservice/sdk/trustchain/util/IntegrityStatus.smali" "return" \
+        "$KMX_TRUSTCHAIN_STATUS" "return" \
         'isNormal()Z' 'true'
+        
+    unset KMX_APK KMX_COMMON_ROT KMX_FABRIC_ROT KMX_TRUSTCHAIN_ROT
+    unset KMX_COMMON_STATUS KMX_FABRIC_STATUS KMX_TRUSTCHAIN_STATUS
+else
+    ABORT "KmxService.apk tidak ditemukan di folder $MODPATH/KmxService/"
 fi

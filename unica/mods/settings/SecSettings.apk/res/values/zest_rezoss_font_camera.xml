@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="unica_camera_feature_export_summary">Save the active runtime camera-feature.xml to a file.</string>
+    <string name="unica_camera_feature_export_title">Export camera-feature.xml</string>
+    <string name="unica_camera_feature_import_summary">Load a validated camera-feature.xml override for Samsung Camera.</string>
+    <string name="unica_camera_feature_import_title">Import camera-feature.xml</string>
+    <string name="unica_camera_feature_reset_summary">Return Samsung Camera to the ROM camera-feature.xml.</string>
+    <string name="unica_camera_feature_reset_title">Reset runtime override</string>
+    <string name="unica_camera_feature_search_summary">Filter by feature name, attribute, or value.</string>
+    <string name="unica_camera_feature_search_title">Search values</string>
+    <string name="unica_camera_feature_summary">Edit Samsung Camera feature flags and values.</string>
+    <string name="unica_camera_feature_title">Camera Feature</string>
+    <string name="unica_camera_feature_values_title">camera-feature.xml values</string>
+    <string name="unica_font_selector_available_title">Fonts available in Display &gt; Font</string>
+    <string name="unica_font_selector_missing">SamsungSans source is missing.</string>
+    <string name="unica_font_selector_preview">UN1CA 8.5 UnOfficial by Rezoss</string>
+    <string name="unica_font_selector_saved">Font availability updated.</string>
+    <string name="unica_font_selector_save_failed">Unable to update font availability.</string>
+    <string name="unica_font_selector_search_summary">Filter by font name.</string>
+    <string name="unica_font_selector_search_title">Search fonts</string>
+    <string name="unica_font_selector_selected_suffix"> (selected)</string>
+    <string name="unica_font_selector_summary">Choose which SamsungSans fonts appear in Display &gt; Font.</string>
+    <string name="unica_font_selector_title">Font Selector</string>
+    <color name="unica_settings_ic_camera_color">#4d9f8f</color>
+    <color name="unica_settings_ic_font_color">#327f7b</color>
+</resources>
