@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="zest_about_title">About ProjectZesT</string>
+    <string name="keywords_about_zest">About ProjectZesT</string>
+    <string name="zest_about_category_title">About the ROM</string>
+    <string name="zest_people_title">People behind the ROM</string>
+    <string name="zest_no_browser">No web browser available</string>
+    <string name="zest_no_github">User does not have a GitHub account</string>
+
+    <string name="zest_about_description">ProjectZesT is a work-in-progress custom firmware for Samsung Galaxy devices. It's based on the latest and greatest iteration of Samsung's UX and it also includes additional features and tweaks to ensure the best possible experience out of the box. It is based on the UN1CA build system which allows automatic downloading/extraction of the firmware, applying the required patches and generating a flashable zip package for the specified target device.
+ProjectZesT supports devices using the snapdragon family SoC Thanks for used our ROM, any suggestions, update for ProjectZesT will be welcome.
+
+&#160;</string>
+
+    <string name="maintainer_1_name">Zest</string>
+    <string name="maintainer_1_role">Developer / Maintainer</string>
+    <string name="maintainer_1_github">blxyzY</string>
+    <string name="maintainer_1_avatar">zest_avatar</string>
+
+    <string name="maintainer_2_name">BODA</string>
+    <string name="maintainer_2_role">Tester / Lead Admin</string>
+    <string name="maintainer_2_github">boda</string>
+    <string name="maintainer_2_avatar">boda_avatar</string>
+</resources>

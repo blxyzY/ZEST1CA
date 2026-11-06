@@ -40,24 +40,52 @@ fi
 
 DECODE_APK "system" "system/priv-app/SecSettings/SecSettings.apk"
 
+DECODE_APK "system" "system/priv-app/SecSettings/SecSettings.apk"
+SECSETTINGS_APK="$APKTOOL_DIR/system/priv-app/SecSettings/SecSettings.apk"
+
 # Disable stock OTA references
 if [ ! -f "$WORK_DIR/system/system/priv-app/ChoiDujour/ChoiDujour.apk" ]; then
-    SMALI_PATCH "system" "system/priv-app/SecSettings/SecSettings.apk" \
-        "smali_classes3/com/samsung/android/settings/softwareupdate/SoftwareUpdateUtils.smali" "return" \
-        'isOTAUpgradeAllowed(Landroid/content/Context;)Z' \
-        'false'
+    SOFTWARE_UPDATE_UTILS="$(find "$SECSETTINGS_APK" \
+        -type f -path '*/com/samsung/android/settings/softwareupdate/SoftwareUpdateUtils.smali' -printf '%P\n' -quit)"
+    [ "$SOFTWARE_UPDATE_UTILS" ] || ABORT "SoftwareUpdateUtils.smali not found"
+    if grep -q -F '.method public static isOTAUpgradeAllowed(Landroid/content/Context;)Z' \
+            "$SECSETTINGS_APK/$SOFTWARE_UPDATE_UTILS"; then
+        SMALI_PATCH "system" "system/priv-app/SecSettings/SecSettings.apk" \
+            "$SOFTWARE_UPDATE_UTILS" "return" \
+            'isOTAUpgradeAllowed(Landroid/content/Context;)Z' \
+            'false'
+    else
+        SOFTWARE_UPDATE_CONTROLLER="$(find "$SECSETTINGS_APK" \
+            -type f -path '*/com/samsung/android/settings/homepage/TopLevelSoftwareUpdatePreferenceController.smali' \
+            -printf '%P\n' -quit)"
+        [ "$SOFTWARE_UPDATE_CONTROLLER" ] || \
+            ABORT "TopLevelSoftwareUpdatePreferenceController.smali not found"
+        SMALI_PATCH "system" "system/priv-app/SecSettings/SecSettings.apk" \
+            "$SOFTWARE_UPDATE_CONTROLLER" "return" \
+            'getAvailabilityStatus()I' \
+            '3'
+    fi
+    unset SOFTWARE_UPDATE_UTILS
 fi
 
 # Always show One UI minor version
+ONEUI_VERSION_CONTROLLER="$(find "$SECSETTINGS_APK" -type f \
+    -path '*/com/samsung/android/settings/deviceinfo/softwareinfo/OneUIVersionPreferenceController.smali' \
+    -printf '%P\n' -quit)"
+[ "$ONEUI_VERSION_CONTROLLER" ] || ABORT "OneUIVersionPreferenceController.smali not found"
 SMALI_PATCH "system" "system/priv-app/SecSettings/SecSettings.apk" \
-    "smali_classes4/com/samsung/android/settings/deviceinfo/softwareinfo/OneUIVersionPreferenceController.smali" "replace" \
+    "$ONEUI_VERSION_CONTROLLER" "replace" \
     'isDeviceWithMicroVersion()Z' \
     'move-result p0' \
     'const/4 p0, 0x1'
 
 # Show real device model number
+MODEL_NAME_GETTER="$(find "$SECSETTINGS_APK" -type f \
+    -path '*/com/samsung/android/settings/deviceinfo/aboutphone/ModelNameGetter.smali' \
+    -printf '%P\n' -quit)"
+[ "$MODEL_NAME_GETTER" ] || ABORT "ModelNameGetter.smali not found"
 SMALI_PATCH "system" "system/priv-app/SecSettings/SecSettings.apk" \
-    "smali_classes4/com/samsung/android/settings/deviceinfo/aboutphone/ModelNameGetter.smali" "replace" \
+    "$MODEL_NAME_GETTER" "replace" \
     'getModelName()Ljava/lang/String;' \
     'ro.product.model' \
     'ro.boot.em.model'
@@ -92,40 +120,19 @@ while IFS= read -r f; do
     fi
 done < <(find "$MODPATH/SecSettings.apk" -type f)
 
-# Add UN1CA Settings SearchIndexableData registrations
-LOG "- Patching \"smali/com/android/settingslib/search/SearchIndexableResourcesMobile.smali\" in /system/system/priv-app/SecSettings.apk"
-SMALI_PATCH "system" "system/priv-app/SecSettings/SecSettings.apk" \
-    "smali/com/android/settingslib/search/SearchIndexableResourcesMobile.smali" "replaceall" \
-    '.class public final Lcom/android/settingslib/search/SearchIndexableResourcesMobile;' \
-    '.class public Lcom/android/settingslib/search/SearchIndexableResourcesMobile;' \
-    > /dev/null
-LOG "- Patching \"smali/com/android/settings/search/SearchFeatureProviderImpl\$\$ExternalSyntheticLambda0.smali\" in /system/system/priv-app/SecSettings.apk"
-SMALI_PATCH "system" "system/priv-app/SecSettings/SecSettings.apk" \
-    "smali/com/android/settings/search/SearchFeatureProviderImpl\$\$ExternalSyntheticLambda0.smali" "replace" \
-    'invoke()Ljava/lang/Object;' \
-    'new-instance p0, Lcom/android/settingslib/search/SearchIndexableResourcesMobile;' \
-    'new-instance p0, Lio/mesalabs/unica/search/UnicaSearchIndexableResources;' \
-    > /dev/null
-SMALI_PATCH "system" "system/priv-app/SecSettings/SecSettings.apk" \
-    "smali/com/android/settings/search/SearchFeatureProviderImpl\$\$ExternalSyntheticLambda0.smali" "replace" \
-    'invoke()Ljava/lang/Object;' \
-    'invoke-direct {p0}, Lcom/android/settingslib/search/SearchIndexableResourcesBase;-><init>()V' \
-    'invoke-direct {p0}, Lio/mesalabs/unica/search/UnicaSearchIndexableResources;-><init>()V' \
-    > /dev/null
-
 DECODE_APK "system" "system/priv-app/SecSettingsIntelligence/SecSettingsIntelligence.apk"
 LOG "- Patching \"smali_classes2/com/samsung/android/settings/intelligence/search/categorizing/TopLevelKeysCollector.smali\" in /system/system/priv-app/SecSettingsIntelligence/SecSettingsIntelligence.apk"
 SMALI_PATCH "system" "system/priv-app/SecSettingsIntelligence/SecSettingsIntelligence.apk" \
     "smali_classes2/com/samsung/android/settings/intelligence/search/categorizing/TopLevelKeysCollector.smali" "replace" \
     '<init>(Landroid/content/Context;)V' \
-    '.locals 36' \
     '.locals 37' \
+    '.locals 38' \
     > /dev/null
 SMALI_PATCH "system" "system/priv-app/SecSettingsIntelligence/SecSettingsIntelligence.apk" \
     "smali_classes2/com/samsung/android/settings/intelligence/search/categorizing/TopLevelKeysCollector.smali" "replace" \
     '<init>(Landroid/content/Context;)V' \
-    'filled-new-array/range {v1 .. v35}, [Ljava/lang/String;' \
-    '    const-string v36, "top_level_unica"\n\n    filled-new-array/range {v1 .. v36}, [Ljava/lang/String;' \
+    'filled-new-array/range {v1 .. v36}, [Ljava/lang/String;' \
+    '    const-string v37, "top_level_unica"\n\n    filled-new-array/range {v1 .. v37}, [Ljava/lang/String;' \
     > /dev/null
 
 # Show Vulkan renderer toggle if required
@@ -133,6 +140,7 @@ if [[ "$(GET_PROP "ro.hwui.use_vulkan")" != "true" ]]; then
     SET_PROP "system" "persist.sys.unica.vulkan" "false"
 fi
 
+unset PATCH_INST CONTENT SECSETTINGS_APK
 unset PATCH_INST CONTENT
 
 LOG_STEP_OUT

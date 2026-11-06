@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="unica_device_image_title">Set device image</string>
+    <string name="unica_device_image_dialog_title">Set device image</string>
+    <string name="unica_device_image_dialog_msg">Enter the product code to use for the device image, or leave empty to reset to the default. The image will update the next time you open About phone.</string>
+    <string name="unica_device_image_dialog_apply">Apply</string>
+    <string name="unica_device_image_dialog_reset">Reset to default</string>
+    <string name="unica_device_image_dialog_cancel">Cancel</string>
+    <string name="zest_version_title">ProjectZesT version</string>
+    <string name="zest_version_toast_counting">Nope, keep tapping... (%d)</string>
+    <string name="zest_version_toast_final">"What are you looking for? Developer settings ain't here!"</string>
+    <string name="zest_version_toast_done">"Still here? I told you, dev settings ain't here!"</string>
+</resources>
