@@ -239,8 +239,57 @@ fi
 if $SOURCE_COMMON_SUPPORT_HDR_EFFECT; then
     if ! $TARGET_COMMON_SUPPORT_HDR_EFFECT; then
         SET_FLOATING_FEATURE_CONFIG "SEC_FLOATING_FEATURE_COMMON_SUPPORT_HDR_EFFECT" --delete
-        # TODO handle this condition
-        LOG_MISSING_PATCHES "TARGET_COMMON_SUPPORT_HDR_EFFECT"
+
+        # The dex bucket used by these controllers changes whenever
+        # SecSettings is rebuilt. Locate both classes dynamically instead of
+        # relying on the smali_classesN paths recorded in the old patch.
+        HDR_SETTINGS_APK="system/priv-app/SecSettings/SecSettings.apk"
+        DECODE_APK "system" "$HDR_SETTINGS_APK" || return 1
+        HDR_SETTINGS_APKTOOL="$APKTOOL_DIR/system/priv-app/SecSettings/SecSettings.apk"
+
+        for HDR_SETTINGS_CLASS in \
+            "com/samsung/android/settings/usefulfeature/videoenhancer/SecBrightenUpVideoPreferenceController.smali" \
+            "com/samsung/android/settings/usefulfeature/videoenhancer/VideoEnhancerPreferenceController.smali"; do
+            HDR_SETTINGS_SMALI="$(find "$HDR_SETTINGS_APKTOOL" -type f \
+                -path "*/$HDR_SETTINGS_CLASS" -printf '%P\n' -quit)"
+
+            if [ ! "$HDR_SETTINGS_SMALI" ]; then
+                LOGE "Could not find $HDR_SETTINGS_CLASS in /system/$HDR_SETTINGS_APK"
+                return 1
+            fi
+
+            # Keep decoded-cache reuse idempotent: SMALI_PATCH intentionally
+            # reports no-op replacements as errors.
+            if awk '
+                /^\.method.*getAvailabilityStatus\(\)I/ { inside = 1 }
+                inside { print }
+                inside && /^\.end method/ { exit }
+            ' "$HDR_SETTINGS_APKTOOL/$HDR_SETTINGS_SMALI" | \
+                    grep -q -F "const/4 p0, 0x3"; then
+                LOG "- HDR controller is already disabled in $HDR_SETTINGS_SMALI"
+            else
+                SMALI_PATCH "system" "$HDR_SETTINGS_APK" "$HDR_SETTINGS_SMALI" \
+                    "return" "getAvailabilityStatus()I" "0x3" || return 1
+            fi
+        done
+
+        unset HDR_SETTINGS_APK HDR_SETTINGS_APKTOOL HDR_SETTINGS_CLASS HDR_SETTINGS_SMALI
+
+        # Keep SettingsProvider's stock `hdr_effect=0` initialization.  Older
+        # sources removed that write, but zero already means disabled and the
+        # feature/controller gates above prevent it from being exposed.  The
+        # register allocation of SecUpgradeController varies between bases,
+        # making the old deletion-only git patch needlessly source-specific.
+    else
+        if [ ! "$(GET_FLOATING_FEATURE_CONFIG "SEC_FLOATING_FEATURE_COMMON_SUPPORT_HDR_EFFECT")" ]; then
+            SET_FLOATING_FEATURE_CONFIG "SEC_FLOATING_FEATURE_COMMON_SUPPORT_HDR_EFFECT" "TRUE"
+        fi
+    fi
+else
+    if $TARGET_COMMON_SUPPORT_HDR_EFFECT; then
+        # Android 16 already contains the HDR settings implementation; expose
+        # it through the target product feature.
+        SET_FLOATING_FEATURE_CONFIG "SEC_FLOATING_FEATURE_COMMON_SUPPORT_HDR_EFFECT" "TRUE"
     fi
 fi
 
@@ -556,25 +605,25 @@ if [[ "$SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE" != "$TARGET_LCD_CONFIG_HFR
 
     if [[ "$SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE" != "none" ]]; then
         SMALI_PATCH "system" "system/framework/framework.jar" \
-            "smali_classes6/com/samsung/android/hardware/display/RefreshRateConfig.smali" "replaceall" \
+            "smali_classes6/com/samsung/android/hardware/display/RefreshRateConfig.smali" "replace" \
+            "dumpProductFeature(Ljava/io/PrintWriter;Ljava/lang/String;Z)V" \
+            "$SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE" \
+            "${TARGET_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE//none/}"
+        SMALI_PATCH "system" "system/framework/framework.jar" \
+            "smali_classes6/com/samsung/android/hardware/display/RefreshRateConfig.smali" "replace" \
+            "getMainInstance()Lcom/samsung/android/hardware/display/RefreshRateConfig;" \
             "$SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE" \
             "${TARGET_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE//none/}"
         SMALI_PATCH "system" "system/priv-app/SecSettings/SecSettings.apk" \
-            "smali_classes3/com/samsung/android/settings/display/SecDisplayUtils.smali" "replaceall" \
+            "smali_classes3/com/samsung/android/settings/display/SecDisplayUtils.smali" "replace" \
+            "getHighRefreshRateSupportedValues(I)[Ljava/lang/String;" \
             "$SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE" \
             "${TARGET_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE//none/}"
-     if [[ "$(GET_FINGERPRINT_SENSOR_TYPE "$TARGET_FINGERPRINT_CONFIG_SENSOR")" == "optical" ]]; then
-            SMALI_PATCH "system_ext" "priv-app/SystemUI/SystemUI.apk" \
-                "smali_classes2/com/android/systemui/keyguard/KeyguardViewMediatorHelperImpl\$\$ExternalSyntheticLambda0.smali" "replaceall" \
-                "60,120" \
-                "${TARGET_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE//none/}"
-     else
-            SMALI_PATCH "system_ext" "priv-app/SystemUI/SystemUI.apk" \
-                "smali_classes2/com/android/systemui/keyguard/KeyguardViewMediatorHelperImpl\$\$ExternalSyntheticLambda0.smali" "replaceall" \
-                "$SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE" \
-                "${TARGET_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE//none/}"
-     fi
-
+        SMALI_PATCH "system_ext" "priv-app/SystemUI/SystemUI.apk" \
+            "smali_classes2/com/android/systemui/keyguard/KeyguardViewMediatorHelperImpl\$\$ExternalSyntheticLambda0.smali" "replace" \
+            "invoke()Ljava/lang/Object;" \
+            "$SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE" \
+            "${TARGET_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE//none/}"
     else
         # TODO handle this condition
         LOG_MISSING_PATCHES "SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE" "TARGET_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE"
@@ -590,6 +639,22 @@ if [[ "$SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE_NS" != "$TARGET_LCD_CONFIG_
             SET_FLOATING_FEATURE_CONFIG "SEC_FLOATING_FEATURE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE_NS" --delete
         fi
 
+        if grep -q "HFR_SUPPORTED_REFRESH_RATE_NS: $SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE_NS" \
+                "$APKTOOL_DIR/system/framework/framework.jar/smali_classes6/com/samsung/android/hardware/display/RefreshRateConfig.smali"; then
+            SMALI_PATCH "system" "system/framework/framework.jar" \
+                "smali_classes6/com/samsung/android/hardware/display/RefreshRateConfig.smali" "replace" \
+                "dumpProductFeature(Ljava/io/PrintWriter;Ljava/lang/String;Z)V" \
+                "HFR_SUPPORTED_REFRESH_RATE_NS: $SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE_NS" \
+                "HFR_SUPPORTED_REFRESH_RATE_NS: ${TARGET_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE_NS//none/}"
+        fi
+        if grep -q "const-string .*\"$SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE_NS\"" \
+                "$APKTOOL_DIR/system/framework/framework.jar/smali_classes6/com/samsung/android/hardware/display/RefreshRateConfig.smali"; then
+            SMALI_PATCH "system" "system/framework/framework.jar" \
+                "smali_classes6/com/samsung/android/hardware/display/RefreshRateConfig.smali" "replace" \
+                "getMainInstance()Lcom/samsung/android/hardware/display/RefreshRateConfig;" \
+                "$SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE_NS" \
+                "${TARGET_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE_NS//none/}"
+        fi
     else
         # TODO handle this condition
         LOG_MISSING_PATCHES "SOURCE_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE_NS" "TARGET_LCD_CONFIG_HFR_SUPPORTED_REFRESH_RATE_NS"
